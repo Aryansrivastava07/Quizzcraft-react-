@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap');
+@layer utilities {
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+    .scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    .scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: #888;
+      background: linear-gradient(to bottom, #e2e2e2, #c9d6ff);
+      border-radius: 4px;
+    }
+    .scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    .quicksand-normal {
+      font-family: "Quicksand", sans-serif;
+      font-optical-sizing: auto;
+      font-weight: 800;
+      font-style: normal;
+      font-size: 5em;
+      text-align: center;
+    }
+    .header{
+      /* clip-path: polygon(100% 100%, 51% 94%, 0 100%, 0% 0%, 100% 0%); */
+      /* clip-path: polygon(50% 0%, 100% 0, 100% 35%, 100% 100%, 74% 94%, 51% 92%, 26% 94%, 0 100%, 0% 35%, 0 0); */
+      /* clip-path: polygon(50% 0%, 100% 0, 100% 35%, 100% 90%, 81% 96%, 51% 100%, 18% 97%, 0 91%, 0% 35%, 0 0); */
+      clip-path: ellipse(100% 64% at 51% 35%);
+    }
+  }
