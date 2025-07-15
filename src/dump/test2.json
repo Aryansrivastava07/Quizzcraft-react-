@@ -1,0 +1,105 @@
+{
+  "quizId": "quiz-1752351409162",
+  "quiz": [
+    {
+      "question": "What programming languages is Abhimanyu Singh proficient in?",
+      "type": "multiple_choice",
+      "options": [
+        "Python, Java, C++, SQL, HTML",
+        "Python, JavaScript, Java, C++, C, SQL, HTML, CSS",
+        "JavaScript, Java, C#, SQL, CSS",
+        "Python, JavaScript, C++, SQL, HTML, CSS, PHP"
+      ]
+    },
+    {
+      "question": "Which frameworks and libraries does Abhimanyu Singh list in his technical skills?",
+      "type": "multiple_choice",
+      "options": [
+        "Node.js, React.js, Angular.js",
+        "Node.js, Express.js, React.js, JWT, Mongoose, pdf.js, Typescript.js",
+        "Express.js, React.js, Vue.js, jQuery",
+        "Node.js, Express.js, Angular.js, MongoDB"
+      ]
+    },
+    {
+      "question": "In the StreamHive project, what database was integrated with Mongoose?",
+      "type": "multiple_choice",
+      "options": [
+        "MySQL",
+        "PostgreSQL",
+        "MongoDB",
+        "Oracle"
+      ]
+    },
+    {
+      "question": "What authentication method was used in both StreamHive and Role-Based Access Control System projects?",
+      "type": "multiple_choice",
+      "options": [
+        "OAuth 2.0",
+        "Basic Authentication",
+        "JWT-based authentication",
+        "OpenID Connect"
+      ]
+    },
+    {
+      "question": "What technology was used for PDF text extraction in the Quiz Creation Platform?",
+      "type": "multiple_choice",
+      "options": [
+        "Tesseract OCR",
+        "pdf.js",
+        "Apache PDFBox",
+        "Camelot"
+      ]
+    },
+    {
+      "question": "Which AI models were used in Abhimanyu's projects?",
+      "type": "multiple_choice",
+      "options": [
+        "GPT-3, DALL-E 2",
+        "Gemini AI, OpenAI API",
+        "Stable Diffusion, Midjourney",
+        "BERT, Transformer"
+      ]
+    },
+    {
+      "question": "What was the highest LeetCode contest rating Abhimanyu achieved?",
+      "type": "multiple_choice",
+      "options": [
+        "1500",
+        "1718",
+        "2000",
+        "2500"
+      ]
+    },
+    {
+      "question": "How many problems did Abhimanyu solve on LeetCode and Geeksforgeeks combined?",
+      "type": "multiple_choice",
+      "options": [
+        "100+",
+        "200+",
+        "300+",
+        "400+"
+      ]
+    },
+    {
+      "question": "In what place did Abhimanyu finish in the highly competitive hackathon organized by IIT Delhi and Adobe?",
+      "type": "multiple_choice",
+      "options": [
+        "1st place",
+        "2nd place runner-up",
+        "3rd place",
+        "Did not participate"
+      ]
+    },
+    {
+      "question": "From which institution did Abhimanyu Singh obtain his Bachelor of Technology degree?",
+      "type": "multiple_choice",
+      "options": [
+        "IIT Delhi",
+        "BITS Pilani",
+        "GL Bajaj Institute Of Technology And Management",
+        "IIIT Hyderabad"
+      ]
+    }
+  ]
+}

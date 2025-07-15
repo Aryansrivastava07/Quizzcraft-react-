@@ -1,7 +1,7 @@
 import { useState } from "react";
 export function PrompttoQuiz() {
     return (
-        <div className="h-[100%] flex flex-col justify-center items-center">
+        <div className="w-full h-full p-10 flex flex-col justify-center items-center">
             <p className="text-center text-3xl quicksand-normal mt-10">
                 Enter a prompt to generate a quiz.
             </p>

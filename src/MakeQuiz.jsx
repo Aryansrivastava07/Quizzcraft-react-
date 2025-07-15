@@ -1,46 +1,75 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PdftoQuiz } from "./PdftoQuiz";
 import { PrompttoQuiz } from "./PrompttoQuiz";
 import { VideotoQuiz } from "./VideotoQuiz";
+import { AllinOneForm } from "./QuizAllinOne";
 import {
   faFilePdf,
   faTerminal,
   faVideo,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const MakeQuiz = () => {
   const [canvas, setCanvas] = useState(null);
+
+  // shared wrapper for both modes
+  const cardBase =
+    "w-full max-w-[80vw] mx-auto mt-10 bg-amber-8 rounded-2xl shadow-2xl relative transition-all";
+
+  // map of your 3 “pick a mode” buttons
+  const modes = [
+    { label: "PDF to Quiz", icon: faFilePdf, comp: <PdftoQuiz /> },
+    { label: "Prompt to Quiz", icon: faTerminal, comp: <PrompttoQuiz /> },
+    { label: "Video to Quiz", icon: faVideo, comp: <VideotoQuiz /> },
+  ];
+  
+
   return (
     <>
-      <h1 className="mt-20 text-6xl quicksand-normal">Create Your Quiz</h1>
-      <div className="w-[80vw] h-[60vh] m-auto mt-10 bg-amber-10 rounded-2xl shadow-2xl">
-        {canvas || <Canvas setCanvas={setCanvas} />}
+      <h1 className="mt-20 text-6xl quicksand-normal text-center">
+        Create Your Quiz
+      </h1>
+
+      {/* swipe-in box for single-mode pick or view */}
+      <div
+        className={`${cardBase} flex items-center ${
+          canvas ? "h-[70vh]" : "h-[40vh]"
+        }`}
+      >
+        {canvas && (
+          <button
+            onClick={() => setCanvas(null)}
+            className="absolute top-3 left-3 z-10 px-3 py-2 rounded-xl opacity-50 hover:opacity-100 hover:bg-amber-100"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </button>
+        )}
+
+        {/* show either the 3-button “canvas” or your chosen canvas */}
+        {canvas || (
+          <div className="flex w-full h-full justify-center items-center gap-12">
+            {modes.map(({ label, icon, comp }, i) => (
+              <button
+                key={i}
+                onClick={() => setCanvas(comp)}
+                className="flex flex-col items-center justify-center w-[20vh] h-[20vh] bg-amber-200 hover:bg-amber-300 rounded-xl"
+              >
+                <FontAwesomeIcon icon={icon} className="text-5xl" />
+                <span className="mt-2">{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* if no canvas is picked, show “OR” + the All-in-One form */}
+      {!canvas && (
+        <AllinOneForm />
+      )}
     </>
   );
 };
-function Canvas({ setCanvas }) {
-  return (
-    <>
-    <div className="w-[100%] h-[100%] flex flex-row gap-30 justify-center items-center">
-      {[
-        ["PDF to Quiz", faFilePdf , <PdftoQuiz />],
-        ["Prompt to Quiz", faTerminal,<PrompttoQuiz />],
-        ["Video to Quiz", faVideo , <VideotoQuiz />],
-      ].map((text,index) => (
-        <button
-          type="button"
-          className="h-[20vh] w-[20vh] bg-amber-200 hover:bg-amber-300 cursor-pointer rounded-xl flex flex-col justify-center items-center relative"
-          onClick={() => setCanvas(text[2])}
-          key={index}
-        >
-          <FontAwesomeIcon icon={text[1]} className="text-5xl" />
-          <p className="absolute bottom-8">{text[0]}</p>
-        </button>
-      ))}
-      </div>
-    </>
-  );
-}
+
 

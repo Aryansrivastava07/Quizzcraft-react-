@@ -1,29 +1,47 @@
-import { useEffect , useState } from 'react'
-import './App.css'
-import { Nav } from './nav.jsx'
-import { Home } from './Home.jsx'
-import { MakeQuiz } from './MakeQuiz.jsx'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import "./App.css";
+import { Nav } from "./Nav.jsx";
+import { Home } from "./Home.jsx";
+import { MakeQuiz } from "./MakeQuiz.jsx";
+import { QuizPlatform } from "./QuizPlatform.jsx";
+import { Result } from "./Result.jsx";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
-function App() {
-  const [count, setCount] = useState(0)
-     useEffect(() => {
-        fetch('http://localhost:5000/api/items')
-          .then((response) => response.json())
-          .then((data) => console.log(data));
-      }, []);
+function AppContent() {
+  const location = useLocation();
+  // Hide Nav on /QuizPlatform
+  const hideNav = location.pathname === "/QuizPlatform";
+
   return (
     <>
-    <Router>
-    <Nav />
-    <Routes>
-    <Route path="/" element={<Navigate to="/Home" />} />
-    <Route path="/Home" element={<Home />} />
-    <Route path="/MakeQuiz" element={<MakeQuiz />} />
-    </Routes>
-    </Router>
+      {!hideNav && (
+        <div className="mb-20">
+          <Nav />
+        </div>
+      )}
+      <Routes>
+        <Route path="/" element={<Navigate to="/Home" />} />
+        <Route path="/Home" element={<Home />} />
+        <Route path="/MakeQuiz" element={<MakeQuiz />} />
+        <Route path="/QuizPlatform" element={<QuizPlatform />} />
+        <Route path="/Result" element={<Result />} />
+      </Routes>
     </>
-  )
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}
+
+export default App;
