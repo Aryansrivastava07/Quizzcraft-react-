@@ -18,20 +18,25 @@ import {
   LinearScale,
   BarElement,
   Title,
+  PointElement,
+  LineElement,
 } from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
 
 ChartJS.register(
   ArcElement,
   Tooltip,
   Legend,
+  plugins,
   CategoryScale,
   LinearScale,
   BarElement,
-  Title
+  Title,
+  PointElement,
+  LineElement
 );
 
-const DoughnutChart = ({ result, answered, length }) => { 
+const DoughnutChart = ({ result, answered, length }) => {
   const data = {
     labels: ["Correct", "Incorrect", "Unanswered"],
     datasets: [
@@ -41,7 +46,6 @@ const DoughnutChart = ({ result, answered, length }) => {
         backgroundColor: [
           "rgb(78, 139, 250)",
           "rgb(92, 161, 255)",
-          // "rgb(254, 221, 66)",/
           "rgb(200, 203, 229)",
         ],
         borderWidth: 0,
@@ -100,17 +104,16 @@ const BarChart = ({ quesTimer }) => {
         label: "Answers",
         data: quesTimer,
         backgroundColor: [
-      'rgb(78, 139, 250)',
-        'rgb(92, 161, 255)',
-        'rgb(200, 203, 229)',
-        'rgb(78, 139, 250)',
+          "rgb(78, 139, 250)",
+          "rgb(92, 161, 255)",
+          "rgb(200, 203, 229)",
+          "rgb(78, 139, 250)",
         ],
-      borderWidth: 0,
-      // barThickness: 30,
-      // maxBarThickness: 40,
-      barPercentage: 0.5,         // Shrinks bar width relative to category
-      categoryPercentage: 0.5, 
-
+        borderWidth: 0,
+        // barThickness: 30,
+        // maxBarThickness: 40,
+        barPercentage: 0.5, // Shrinks bar width relative to category
+        categoryPercentage: 0.5,
       },
     ],
   };
@@ -119,34 +122,94 @@ const BarChart = ({ quesTimer }) => {
   //   responsive: true,
   // };
   const options = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false,
-    },
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: {
-        color: '#333',
-        font: { size: 14 },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
       },
     },
-    y: {
-      beginAtZero: true,
-      grid: { display: false },
-      ticks: {
-        stepSize: 2,
-        color: '#333',
-        font: { size: 14 },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: "#333",
+          font: { size: 14 },
+        },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { display: false },
+        ticks: {
+          stepSize: 2,
+          color: "#333",
+          font: { size: 14 },
+        },
       },
     },
-  },
-};
+  };
 
   return <Bar data={data} options={options} className="full-size-chart" />;
+};
+
+const LineChart = ({ quesTimer }) => {
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "nearest", // or 'index', 'point', 'x', 'y'
+      intersect: false, // set to false to trigger hover even when not directly over a point
+    },
+
+    elements: {
+      line: {
+        tension: 0.3, // Adjust this value for more or less curve
+      },
+    },
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        // ticks: {
+        //   color: "#333",
+        //   font: { size: 14 },
+        // },
+      },
+      y: {
+        // beginAtZero: true,
+        grid: { display: false },
+        // ticks: {
+        //   stepSize: 2,
+        //   color: "#333",
+        //   font: { size: 14 },
+        // },
+      },
+    },
+  };
+
+  const data = {
+    labels: Array.from({ length: quesTimer.length }, (_, i) => i + 1),
+    datasets: [
+      {
+        label: "Answers",
+        data: Array.from(
+          { length: quesTimer.length },
+          (_, i) => 30 - quesTimer[i++]
+        ),
+        backgroundColor: [
+          "rgb(78, 139, 250)",
+          "rgb(92, 161, 255)",
+          "rgb(200, 203, 229)",
+          "rgb(78, 139, 250)",
+        ],
+      },
+    ],
+  };
+  return <Line options={options} data={data} />;
 };
 
 export const Result = () => {
@@ -216,23 +279,23 @@ export const Result = () => {
               Correct Answers
             </h2>
             <div className="max-h-full box-border">
-            {resultFetched && (
-              <DoughnutChart
-                answered={answered}
-                result={result}
-                length={length}
-              />
-            )}
+              {resultFetched && (
+                <DoughnutChart
+                  answered={answered}
+                  result={result}
+                  length={length}
+                />
+              )}
             </div>
           </div>
         </div>
         <div className="h-full w-full rounded-2xl grid grid-rows-[1.5fr_2fr] gap-5 p-5 ">
           <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-5">
             <h2 className="font-bold text-2xl text-[#041b43]">
-              Score Distribution
+              Time Spent in each Question
             </h2>
-            <div className="max-h-full w-[50%] pt-10 box-border relative ">
-              {resultFetched && <BarChart quesTimer={quesTimer} />}
+            <div className="max-h-full w-full pt-10 box-border relative ">
+              {resultFetched && <LineChart quesTimer={quesTimer} />}
             </div>
           </div>
           <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-5">
