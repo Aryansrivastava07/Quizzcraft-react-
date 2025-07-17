@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { Nav } from "./Nav.jsx";
 import { Home } from "./Home.jsx";
-import { Register } from "./Register.jsx";
 import { Login } from "./Login.jsx";
 import { MakeQuiz } from "./MakeQuiz.jsx";
 import { QuizPlatform } from "./QuizPlatform.jsx";
@@ -30,7 +29,6 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<Navigate to="/Home" />} />
         <Route path="/Home" element={<Home />} />
-        <Route path="/Register" element={<Register />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/MakeQuiz" element={<MakeQuiz />} />
         <Route path="/QuizPlatform" element={<QuizPlatform />} />
