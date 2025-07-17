@@ -16,7 +16,7 @@ import {
 function AppContent() {
   const location = useLocation();
   // Hide Nav on /QuizPlatform
-  const hideNav = location.pathname === "/QuizPlatform";
+  const hideNav = location.pathname.toLowerCase() === "/quizplatform";
 
   return (
     <>
