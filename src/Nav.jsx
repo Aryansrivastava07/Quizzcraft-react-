@@ -39,7 +39,7 @@ export const Nav = () => {
 //   }
   return (
     // <nav className="flex items-center justify-between flex-wrap pl-8 pr-8 max-w-screen bg-linear-to-r from-[#e2e2e2] to-[#c9d6ff]">
-    <nav className="fixed top-0 flex items-center w-screen justify-between flex-wrap pl-8 pr-8 max-w-screen bg-transparent z-10 backdrop-blur-sm">
+    <nav className="fixed top-0 flex items-center w-screen justify-between flex-wrap pl-8 pr-8 max-w-screen bg-transparent z-10 backdrop-blur-sm  mb-20">
       <img src="src/assets/logo2.png" alt="logo" className ="w-18 " height="500" width="500" />
       <menu className="relative flex items-center justify-between flex-wrap " >
         {anchor("Home","Home")}
