@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faLock, faArrowRight, faUser, faPhone, faUnlock } from "@fortawesome/free-solid-svg-icons";
-import { Register } from "./Register";
 
 export const Login = () => {
   const [canvas,setcanvas] = useState(null);
