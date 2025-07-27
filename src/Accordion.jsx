@@ -2,9 +2,10 @@ import { react } from 'react'
 import { Disclosure } from '@headlessui/react';
 import { ChevronUpIcon } from '@heroicons/react/20/solid';
 
-export default function Accordion({ title, isright, children }) {
+export default function Accordion({ title, isright,idx, children }) {
   return (
-    <div className={`w-full mx-auto rounded-2xl shadow p-5 m-5 ${isright?"bg-[linear-gradient(to_right,_rgba(0,128,0,.3)_0%,_white_20%)]":"bg-[linear-gradient(to_right,_rgba(255,0,0,.3)_0%,_white_20%)]"}`}>
+    <div className={`w-full mx-auto rounded-2xl shadow p-5 m-5 ${isright?"bg-[linear-gradient(to_right,_rgba(0,128,0,.3)_0%,_white_20%)]":"bg-[linear-gradient(to_right,_rgba(255,0,0,.3)_0%,_white_20%)]"}`} key
+    ={idx}>
       <Disclosure>
         {({ open }) => (
           <>

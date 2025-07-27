@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, react } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Questions, Options } from './dump/TestQuiz';
+// import { Questions, Options } from './dump/TestQuiz';
 
 const useIsTabActive = () => {
   const [isTabVisible, setIsTabVisible] = useState(true);
@@ -25,14 +25,15 @@ export const QuizPlatform = () => {
   const navigate = useNavigate();
   const quizId = location.state?.quizId || "quiz-1752351409162"; // ✅ Use quizId from location state or default value
   // ✅ Initialize questions and options state
-  const [questions, setQuestions] = useState(Questions); // ✅ Initialize questions state
-  const [options, setOptions] = useState(Options); // ✅ Initialize questions state
-  const length = questions.length;
+  const questions = location.state?.Questions; // ✅ Initialize questions state
+  const options = location.state?.Options; // ✅ Initialize questions state
   // Get quiz data from location state or use default QuizData
-  useEffect(() => {
-    setQuestions(location.state?.Questions || Questions);
-    setOptions(location.state?.Options || Options);
-  }, [location.state]);
+  // console.log("Options:", options);
+  // useEffect(() => {
+  //   setQuestions(location.state?.Questions);
+  //   setOptions(location.state?.Options );
+  // }, [location.state]);
+  const length = 10;
 
   const [answered, setAnswered] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);

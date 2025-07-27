@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const testjson = require("../src/dump/test2.json"); // Import test JSON for debugging
+// const testjson = require("../src/dump/test2.json"); // Import test JSON for debugging
 
 const app = express();
 const port = 5000;
@@ -17,7 +17,7 @@ app.use(express.json()); // For parsing JSON bodies if needed
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Or gemini-1.5-pro for more complex tasks
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Or gemini-1.5-pro for more complex tasks
 
 let answerKeys = { // Global variable to store answer keys
 }; // Global variable to store answer keys
@@ -32,10 +32,10 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
   }
   // If you want to use the test JSON for debugging, uncomment the line below
     // Store the answer key in the global variable
-    answerKeys['quiz-1752351409162'] = [1, 1, 2, 2, 1, 1, 1, 2, 1, 2]; // Merge with existing answer keys
-  return res.json({ data: testjson }); // Return the test JSON directly for debugging
+    // answerKeys['quiz-1752351409162'] = [1, 1, 2, 2, 1, 1, 1, 2, 1, 2]; // Merge with existing answer keys
+  // return res.json({ data: testjson }); // Return the test JSON directly for debugging
 
-
+console.log("Pdf file received:", req.file.originalname);
   try {
     const pdfBuffer = req.file.buffer;
 
@@ -111,7 +111,7 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
     const answerKey = quiz.map((q) => ({
       correct_answer: q.correct_answer
     }));
-    console.log("Answer Key:", answerKey);
+    // console.log("Answer Key:", answerKey);
     // Store the answer key in the global variable
     answerKeys[quizId] = { answerKey }; // Merge with existing answer keys
     // Remove the answer key and Type from the quiz
@@ -120,8 +120,8 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
       return rest; // Return the rest of the object
     });
     dataToSend.quiz = quiz;
-    // console.log("Quiz Data:", dataToSend.quiz);
-    // console.log("Answer Key:", answerKey);
+    console.log("Quiz Data:", dataToSend.quiz);
+    console.log("Answer Key:", answerKey);
     res.json({ data:dataToSend});
   } catch (error) {
     console.error("Error in /generate-quiz:", error);

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { PDFDocument } from "pdf-lib";
 import { extractPdfPages } from "./pdfUtils";
 import PdfPagesViewer from "./PdfPagesViewer";
-import QuizData, { Questions } from "./dump/TestQuiz";
+// import QuizData, { Questions } from "./dump/TestQuiz";
 
 const createNewPDF = async (originalPdfBytes, selectedPages) => {
   const originalPdf = await PDFDocument.load(originalPdfBytes);
@@ -112,11 +112,16 @@ export function PdftoQuiz() {
         })
         .then((data) => {
           setQuizData(data.data.quiz);
-          // console.log("Quiz Data:", quizData);
+          console.log("Quiz Data:", data.data.quiz);
           setLoading(false);
           // Navigate to QuizPlatform with the quiz data
-          const question = QuizData.map((q) => q.question);
-          const options = QuizData.map((q) => q.options);
+          const question = data.data.quiz.map((q) => q.question);
+          const options = data.data.quiz.map((q) => q.options);
+          console.log("Navigating to QuizPlatform with data:", {
+            quizId: data.data.quizId,
+            Questions: question,
+            Options: options,
+          });
             navigate("/QuizPlatform", {
             state: {
               quizId: data.data.quizId,

@@ -22,7 +22,7 @@ export const Result = () => {
   const length = quesTimer.length;
   const [result, setResult] = useState();
   const [correctAnswer, setCorrectAnswer] = useState();
-  const [resultFetched, setresultRetched] = useState(false);
+  const [resultFetched, setresultFetched] = useState(false);
 
   // Fetch the answer key from the server
   const fetchAnswerKey = async () => {
@@ -39,6 +39,7 @@ export const Result = () => {
         throw new Error("Failed to fetch answer key", response.statusText);
       }
       const data = await response.json();
+      // console.log(data.answers);
       return data.answers;
     } catch (error) {
       console.error("Error fetching answer key:", error);
@@ -48,14 +49,27 @@ export const Result = () => {
   useEffect(() => {
     fetchAnswerKey()
       .then((data) => {
-        setCorrectAnswer(data);
-        if (responses && data) {
-          const score = responses.reduce((acc, response, idx) => {
-            return acc + (response === data[idx] ? 1 : 0);
-          }, 0);
-          setResult(score);
-          setresultRetched(true);
+        setCorrectAnswer(data.answerKey);
+        // console.log("Correct Answers:", data);
+        // if (responses && data) {
+        //   const score = responses.reduce((acc, response, idx) => {
+        //     return acc + (response === data.answerKey[idx] ? 1 : 0);
+        //   }, 0);
+
+        //   setResult(score);
+        //   setresultFetched(true);
+        // }
+        // Calculate the score based on responses and correct answers
+        // const score = fetchScore(data.answerKey);
+        const answers = data.answerKey;
+        let score = 0;
+        for (let i = 0; i < responses.length; i++) {
+          if (responses[i] === (answers[i].correct_answer - '0')) {
+            score++;
+          }
         }
+        setResult(score);
+        setresultFetched(true);
       })
       .catch((error) => {
         console.error("Error in fetching answer key:", error);
@@ -118,7 +132,6 @@ export const Result = () => {
     </>
   );
 };
-0.7;
 const Review = ({
   questions,
   options,
@@ -139,9 +152,9 @@ const Review = ({
         <span className="flex flex-row items-center-safe gap-2">
           <img
             src={
-              responses[index - 1] === correctAnswer[index - 1]
+              (responses[index - 1] === (correctAnswer[index - 1].correct_answer - '0')
                 ? correctAnswerImg
-                : wrongAnswerImg
+                : wrongAnswerImg)
             }
             className="w-6 h-6"
             alt=""
@@ -164,7 +177,8 @@ const Review = ({
           {questions.map((ques, idx) => (
             <Accordion
               title={title(idx + 1, ques, options[idx][responses[idx]])}
-              isright = {responses[idx]===correctAnswer[idx]}
+              isright={responses[idx] === correctAnswer[idx].correct_answer - '0'}
+              key={idx}
             >
               <div className="flex flex-col gap-5">
                 <span className="flex flex-row">
@@ -176,7 +190,7 @@ const Review = ({
                   <p className="text-green-600 font-bold">
                     Correct Asswer : &nbsp;
                   </p>
-                  {options[idx][correctAnswer[idx]]}
+                  {options[idx][(correctAnswer[idx].correct_answer - '0')]}
                 </span>
                 <span className="flex flex-row">
                   <img

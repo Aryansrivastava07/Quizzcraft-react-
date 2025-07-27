@@ -21,12 +21,12 @@
     background: #888;
     background: linear-gradient(to bottom, #e2e2e2, #c9d6ff);
     border-radius: 4px;
-  }
+  } */
   .scrollbar::-webkit-scrollbar-thumb:hover {
     background: #555;
-  } */
-   .scrollbar::-webkit-scrollbar {
-  width: 6px; /* Try 6–8px */
+  }
+  .scrollbar::-webkit-scrollbar {
+  width: 6px; 
 }
 .scrollbar::-webkit-scrollbar-track {
   background: transparent;
