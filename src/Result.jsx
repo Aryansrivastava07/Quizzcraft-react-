@@ -1,4 +1,4 @@
-import { fetchData } from "pdfjs-dist";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   useEffect,
   useState,
@@ -7,219 +7,19 @@ import {
   useLayoutEffect,
   useMemo,
 } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  plugins,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  PointElement,
-  LineElement,
-} from "chart.js";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
-
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  plugins,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  PointElement,
-  LineElement
-);
-
-const DoughnutChart = ({ result, answered, length }) => {
-  const data = {
-    labels: ["Correct", "Incorrect", "Unanswered"],
-    datasets: [
-      {
-        label: "Answers",
-        data: [result, answered - result, 10 - answered],
-        backgroundColor: [
-          "rgb(78, 139, 250)",
-          "rgb(92, 161, 255)",
-          "rgb(200, 203, 229)",
-        ],
-        borderWidth: 0,
-      },
-    ],
-  };
-  const options = {
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          color: "#041b43",
-          font: {
-            size: 14,
-            weight: "bold",
-          },
-        },
-      },
-    },
-    rotation: 180, // Starts at 180 degrees (left)
-  };
-
-  const percentage = useMemo(() => {
-    return `${Math.round((result / length) * 100)}%`;
-  }, [result]);
-
-  const centerTextPlugin = {
-    id: "centerText",
-    beforeDraw: (chart) => {
-      if (!percentage) return;
-      const {
-        ctx,
-        chartArea: { top, bottom, left, right },
-      } = chart;
-      const centerX = (left + right) / 2;
-      const centerY = (top + bottom) / 2;
-      ctx.save();
-      ctx.font = "bold 30px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(percentage, centerX, centerY);
-      ctx.restore();
-    },
-  };
-
-  return (
-    <Doughnut data={data} options={options} plugins={[centerTextPlugin]} />
-  );
-};
-
-const BarChart = ({ quesTimer }) => {
-  const data = {
-    labels: Array.from({ length: quesTimer.length }, (_, i) => i + 1),
-    datasets: [
-      {
-        label: "Answers",
-        data: quesTimer,
-        backgroundColor: [
-          "rgb(78, 139, 250)",
-          "rgb(92, 161, 255)",
-          "rgb(200, 203, 229)",
-          "rgb(78, 139, 250)",
-        ],
-        borderWidth: 0,
-        // barThickness: 30,
-        // maxBarThickness: 40,
-        barPercentage: 0.5, // Shrinks bar width relative to category
-        categoryPercentage: 0.5,
-      },
-    ],
-  };
-  // const options = {
-  //   maintainAspectRatio: false,
-  //   responsive: true,
-  // };
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        ticks: {
-          color: "#333",
-          font: { size: 14 },
-        },
-      },
-      y: {
-        beginAtZero: true,
-        grid: { display: false },
-        ticks: {
-          stepSize: 2,
-          color: "#333",
-          font: { size: 14 },
-        },
-      },
-    },
-  };
-
-  return <Bar data={data} options={options} className="full-size-chart" />;
-};
-
-const LineChart = ({ quesTimer }) => {
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: "nearest", // or 'index', 'point', 'x', 'y'
-      intersect: false, // set to false to trigger hover even when not directly over a point
-    },
-
-    elements: {
-      line: {
-        tension: 0.3, // Adjust this value for more or less curve
-      },
-    },
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false },
-        // ticks: {
-        //   color: "#333",
-        //   font: { size: 14 },
-        // },
-      },
-      y: {
-        // beginAtZero: true,
-        grid: { display: false },
-        // ticks: {
-        //   stepSize: 2,
-        //   color: "#333",
-        //   font: { size: 14 },
-        // },
-      },
-    },
-  };
-
-  const data = {
-    labels: Array.from({ length: quesTimer.length }, (_, i) => i + 1),
-    datasets: [
-      {
-        label: "Answers",
-        data: Array.from(
-          { length: quesTimer.length },
-          (_, i) => 30 - quesTimer[i++]
-        ),
-        backgroundColor: [
-          "rgb(78, 139, 250)",
-          "rgb(92, 161, 255)",
-          "rgb(200, 203, 229)",
-          "rgb(78, 139, 250)",
-        ],
-      },
-    ],
-  };
-  return <Line options={options} data={data} />;
-};
+import { DoughnutChart, LineChart } from "./Graphs.jsx";
+import Accordion from "./Accordion.jsx";
 
 export const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const responses = location.state?.Responses;
   const quesTimer = location.state?.quesTimer || [];
-  const length = quesTimer.length;
   const quizId = location.state?.quizID;
   const answered = location.state?.answered;
+  const questions = location.state?.questions;
+  const options = location.state?.options;
+  const length = quesTimer.length;
   const [result, setResult] = useState();
   const [correctAnswer, setCorrectAnswer] = useState();
   const [resultFetched, setresultRetched] = useState(false);
@@ -264,7 +64,7 @@ export const Result = () => {
 
   return (
     <>
-      <div className="grid h-[90vh] w-full m-auto grid-cols-[1fr_2.5fr] justify-center items-center px-25 bg-[#f5f6f9]">
+      <div className="grid h-[90vh] w-full m-auto grid-cols-[1fr_2.5fr] justify-center items-center px-25 bg-[#f5f6f9] shadow-2xs">
         <div className="h-full w-full rounded-2xl grid grid-rows-[1fr_2.5fr] gap-5 p-5 ">
           <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-5 grid grdo-rows-2 items-center justify-center">
             <h2 className="font-bold text-center text-2xl text-[#041b43]">
@@ -303,6 +103,112 @@ export const Result = () => {
           </div>
         </div>
       </div>
+      <h1 className="font-bold text-5xl text-center text-[#041b43] m-5 mt-10">
+        Review your Answeres
+      </h1>
+      <div className=" w-full m-auto justify-center items-center px-25 bg-[#f5f6f9] shadow-2xl">
+        <Review
+          questions={questions}
+          options={options}
+          correctAnswer={correctAnswer}
+          responses={responses}
+          quesTimer={quesTimer}
+        />
+      </div>
+    </>
+  );
+};
+0.7;
+const Review = ({
+  questions,
+  options,
+  correctAnswer,
+  responses,
+  quesTimer,
+}) => {
+  function title(index, ques, ans) {
+    // const correctAnswerImg = "https://st.depositphotos.com/12141488/52464/i/450/depositphotos_524641226-stock-photo-raster-yes-icon-illustration.jpg";
+    // const correctAnswerImg = "https://cdn3.iconfinder.com/data/icons/flat-actions-icons-9/792/Tick_Mark_Circle-512.png";
+    const correctAnswerImg = "src/assets/correct.png";
+
+    // const wrongAnswerImg = "https://static.vecteezy.com/system/resources/previews/014/313/137/non_2x/red-cross-icon-for-things-that-should-not-be-done-or-forbidden-png.png";
+    const wrongAnswerImg = "src/assets/incorrect.png";
+
+    return (
+      <div className="flex flex-col w-full">
+        <span className="flex flex-row items-center-safe gap-2">
+          <img
+            src={
+              responses[index - 1] === correctAnswer[index - 1]
+                ? correctAnswerImg
+                : wrongAnswerImg
+            }
+            className="w-6 h-6"
+            alt=""
+          />
+          <h2 className="text-xl text-center font-bold text-gray-800 pr-10">
+            Question {index}
+          </h2>
+          <div className="">
+            <h2 className="text-xl font-bold text-gray-800 "> {ques} </h2>
+            <p className="text-sm text-gray-500">Your answer: {ans}</p>
+          </div>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <>
+      {correctAnswer && (
+        <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-10">
+          {questions.map((ques, idx) => (
+            <Accordion
+              title={title(idx + 1, ques, options[idx][responses[idx]])}
+              isright = {responses[idx]===correctAnswer[idx]}
+            >
+              <div className="flex flex-col gap-5">
+                <span className="flex flex-row">
+                  <img
+                    src="src/assets/correct.png"
+                    className="w-5 h-5 mr-1"
+                    alt=""
+                  />{" "}
+                  <p className="text-green-600 font-bold">
+                    Correct Asswer : &nbsp;
+                  </p>
+                  {options[idx][correctAnswer[idx]]}
+                </span>
+                <span className="flex flex-row">
+                  <img
+                    src="src/assets/timetaken.png"
+                    className="w-5 h-5 mr-1"
+                    alt=""
+                  />{" "}
+                  <p className=" font-bold">Time Taken : &nbsp;</p>
+                  {30 - quesTimer[idx]} sec
+                </span>
+                <span className="flex flex-row">
+                  {/* <img
+                    src="src/assets/timetaken.png"
+                    className="w-5 h-5 mr-1"
+                    alt=""
+                  />{" "} */}
+                  💡
+                  <p className="font-bold whitespace-nowrap ">
+                    Explanation : &nbsp;
+                  </p>
+                  <p className="flex flex-wrap">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Enim eius magnam tempora magni eligendi dolor delectus
+                    quisquam voluptas, possimus nobis, mollitia a laboriosam
+                    nemo assumenda.
+                  </p>
+                </span>
+              </div>
+            </Accordion>
+          ))}
+        </div>
+      )}
     </>
   );
 };

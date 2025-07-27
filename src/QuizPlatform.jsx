@@ -50,6 +50,8 @@ export const QuizPlatform = () => {
     navigate("/Result", {
       state: {
         quizID: quizId ,
+        questions: questions,
+        options: options,
         Responses: Responses,
         quesTimer: quesTimer,
         answered: answered,
