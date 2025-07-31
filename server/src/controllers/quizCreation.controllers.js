@@ -28,6 +28,53 @@ const quizCreation = asyncHandler(async (req, res, next) => {
     const geminiUploads = await Promise.all(uploadPromises);
 
     const fileParts = geminiUploads.map(file => createPartFromUri(file.uri, file.mimeType));
+
+    const quizCreationSchema = {
+        type: 'object',
+        properties: {
+            quiz: {
+                type: 'object',
+                description: "The quiz object containing a title and a list of questions.",
+                properties: {
+                    title: {
+                        type: 'string',
+                        description: "The title of the quiz, related to the topic."
+                    },
+                    questions: {
+                        type: 'array',
+                        description: "A list of quiz questions.",
+                        items: {
+                            type: 'object',
+                            properties: {
+                                question: {
+                                    type: 'string',
+                                    description: "The question for the user."
+                                },
+                                type: {
+                                    type: 'string',
+                                    description: "The type of question, must be 'multiple_choice'."
+                                },
+                                options: {
+                                    type: 'array',
+                                    description: "A list of 4 multiple choice options.",
+                                    items: {
+                                        type: 'string'
+                                    }
+                                },
+                                correct_answer: {
+                                    type: 'integer',
+                                    description: "The 0-based index of the correct answer in the options array."
+                                }
+                            },
+                            required: ["question", "type", "options", "correct_answer"]
+                        }
+                    }
+                },
+                required: ["title", "questions"]
+            }
+        },
+        required: ["quiz"]
+    };
     const prompt = `
     From the following PDF content, generate a quiz.
         Instructions:
@@ -47,11 +94,19 @@ const quizCreation = asyncHandler(async (req, res, next) => {
     const countTokensResponse = await ai.models.countTokens({
         model: "gemini-2.5-flash",
         contents: createUserContent([...fileParts, prompt]),
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: quizCreationSchema,
+        },
     });
     console.log(countTokensResponse.totalTokens);
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents: createUserContent([...fileParts, prompt]),
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: quizCreationSchema,
+        },
     });
 
 
@@ -63,26 +118,26 @@ const quizCreation = asyncHandler(async (req, res, next) => {
     await Promise.all(deletePromises);
 
     // Correctly access the generated text from the response
-    const generatedText = response.candidates[0].content.parts[0].text;
-    
-    let quizData;
+    const generatedText = response.text;
 
-    try {
-        // Gemini can sometimes wrap the JSON in ```json ... ```, so we clean it up before parsing.
-        const cleanedJsonString = generatedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
-        quizData = JSON.parse(cleanedJsonString);
-    } catch (error) {
-        console.error("Failed to parse Gemini response as JSON:", error);
-        console.error("Raw Gemini Response:", generatedText);
-        throw new ApiError(500, "Failed to parse the quiz data from the AI service. Please try again.");
-    }
+    // let quizData;
 
-    console.log(quizData);
+    // try {
+    //     // Gemini can sometimes wrap the JSON in ```json ... ```, so we clean it up before parsing.
+    //     const cleanedJsonString = generatedText.replace(/^```json\s*/, '').replace(/```$/, '').trim();
+    //     quizData = JSON.parse(cleanedJsonString);
+    // } catch (error) {
+    //     console.error("Failed to parse Gemini response as JSON:", error);
+    //     console.error("Raw Gemini Response:", generatedText);
+    //     throw new ApiError(500, "Failed to parse the quiz data from the AI service. Please try again.");
+    // }
+
+    console.log(JSON.parse(generatedText));
     // Fix the syntax error and pass arguments correctly to ApiResponse
     return res.status(200).json(new ApiResponse(
         200,
         "Quiz generated successfully.",
-        { quiz: quizData }
+        { response: JSON.parse(generatedText) }
     ));
 });
 
