@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { extractPdfPages } from "./pdfUtils";
+// import { extractPdfPages } from "./pdfUtils";
 import PdfPagesViewer from "./PdfPagesViewer";
 
 const createNewPDF = async (originalPdfBytes, selectedPages) => {
@@ -95,14 +95,14 @@ export const AllinOneForm = () => {
     "w-full max-w-[80vw] mx-auto mt-10 bg-amber-8 rounded-2xl shadow-2xl relative transition-all";
   const [file, setFile] = useState(null);
   return (
-    <section>
+    <section className="">
       <p className="relative my-8 text-center text-4xl text-amber-600 font-semibold">
         <span className="before:absolute before:top-1/2 before:left-0 before:w-1/3 before:h-[2px] before:bg-amber-300 before:content-['']" />
         OR
         <span className="after:absolute after:top-1/2 after:right-0 after:w-1/3 after:h-[2px] after:bg-amber-300 after:content-['']" />
       </p>
 
-      <div className={`${cardBase} p-10`}>
+      <div className={`${cardBase} p-10 bg-gradient-to-t from-slate-900 to-slate-800 dark:from-black dark:to-gray-900 dark:text-white`}>
         <h2 className="mb-6 mt-12 text-center text-4xl font-extrabold tracking-wide">
           Try All-In-One
         </h2>

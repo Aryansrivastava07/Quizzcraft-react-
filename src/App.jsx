@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
 import "./App.css";
-import { Nav, anchor } from "./Nav.jsx";
+import { Nav, anchor } from "./Components/Nav.jsx";
 import { Home } from "./Home.jsx";
 import { Login } from "./Login.jsx";
 import { Dashboard } from "./Dashboard.jsx";
 import { MakeQuiz } from "./MakeQuiz.jsx";
+import { MakeQuizver0 } from "./Components/MakeQuizver0.jsx";
 import { QuizPlatform } from "./QuizPlatform.jsx";
 import { Result } from "./Result.jsx";
-import { ThemeProvider } from "./ThemeContext";
+import { ThemeProvider } from "./Components/ThemeContext";
 import {
   BrowserRouter as Router,
   Routes,
@@ -43,6 +43,7 @@ function AppContent() {
           <Route path="/Login" element={<Login />} />
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/MakeQuiz" element={<MakeQuiz />} />
+          <Route path="/MakeQuizver0" element={<MakeQuizver0 />} />
           <Route path="/QuizPlatform" element={<QuizPlatform />} />
           <Route path="/Result" element={<Result />} />
         </Routes>
