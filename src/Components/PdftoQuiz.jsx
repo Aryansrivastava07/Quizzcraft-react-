@@ -2,9 +2,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PDFDocument } from "pdf-lib";
-import { extractPdfPages } from "./pdfUtils";
+import { extractPdfPages } from "../utils/PdfUtils";
 import PdfPagesViewer from "./PdfPagesViewer";
-// import QuizData, { Questions } from "./dump/TestQuiz";
 
 const createNewPDF = async (originalPdfBytes, selectedPages) => {
   const originalPdf = await PDFDocument.load(originalPdfBytes);
@@ -22,62 +21,51 @@ const createNewPDF = async (originalPdfBytes, selectedPages) => {
 
 export function PdftoQuiz() {
   const [file, setFile] = useState(null);
-  const [selectedPages, setSelectedPages] = useState([]);
-  const [pages, setPages] = useState([]);
-  const [pdfBytes, setPdfBytes] = useState(null);
-  const [quizData, setQuizData] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const handleFileUpload = async (e) => {
-    const fileUploaded = e.target.files[0];
-    if (!fileUploaded || fileUploaded.type !== "application/pdf") {
-      alert("Please upload a valid PDF file!");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(fileUploaded);
-
-    reader.onload = async () => {
-      // Read the raw data from the file
-      const originalPdfData = new Uint8Array(reader.result);
-
-      // Clone the data for storage—this copy will be used when generating the new PDF
-      const pdfDataCopy = new Uint8Array(originalPdfData.length);
-      pdfDataCopy.set(originalPdfData);
-      setPdfBytes(pdfDataCopy);
-
-      try {
-        const extractedPages = await extractPdfPages(originalPdfData);
-        setPages(extractedPages);
-      } catch (error) {
-        console.error("Error parsing PDF:", error);
-        alert("Failed to process the PDF. Please try another file.");
-      }
+  const [pdfs, setPdfs] = useState([]);
+   const handleFileUpload = async (fileUploaded) => {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(fileUploaded);
+  
+      reader.onload = async () => {
+        const pdfData = {
+          pdf: fileUploaded,
+          pdfBytes: new Uint8Array(reader.result),
+          pages: 0,
+          selectedPages: [],
+        };
+        const originalPdfData = new Uint8Array(reader.result);
+        const pdfDataCopy = new Uint8Array(originalPdfData.length);
+        pdfDataCopy.set(originalPdfData);
+        pdfData.pdfBytes = pdfDataCopy;
+        try {
+          const extractedPages = await extractPdfPages(originalPdfData);
+          pdfData.pages = extractedPages;
+            setPdfs((prev) => [...prev, pdfData]);
+        } catch (error) {
+          console.error("Error parsing PDF:", error);
+          alert("Failed to process the PDF. Please try another file.");
+        }
+      };
+  
+      reader.onerror = () => {
+        alert("Error reading the file. Please try again.");
+      };
     };
-
-    reader.onerror = () => {
-      alert("Error reading the file. Please try again.");
-    };
-  };
-
-  const handlePageToggle = (pageNumber) => {
-    setSelectedPages((prevSelected) =>
-      prevSelected.includes(pageNumber)
-        ? prevSelected.filter((num) => num !== pageNumber)
-        : [...prevSelected, pageNumber]
-    );
-  };
 
   const handleGenerate = async () => {
-    if (!pdfBytes) {
+
+    if (!pdfs) {
       alert("No PDF file uploaded!");
       return;
     }
-    if (selectedPages.length === 0) {
+    if (pdfs[pdfs.length-1].selectedPages.length === 0) {
       alert("No pages selected!");
       return;
     }
+    const pdfBytes = pdfs[pdfs.length-1].pdfBytes;
+    const selectedPages = pdfs[pdfs.length-1].selectedPages;
 
     // Clone pdfBytes for safe processing—in case the original is detached during PDF processing.
     const pdfBytesClone = new Uint8Array(pdfBytes.length);
@@ -111,7 +99,7 @@ export function PdftoQuiz() {
           return res.json();
         })
         .then((data) => {
-          setQuizData(data.data.quiz);
+          // setQuizData(data.data.quiz);
           console.log("Quiz Data:", data.data.quiz);
           setLoading(false);
           // Navigate to QuizPlatform with the quiz data
@@ -122,13 +110,13 @@ export function PdftoQuiz() {
             Questions: question,
             Options: options,
           });
-            navigate("/QuizPlatform", {
+          navigate("/QuizPlatform", {
             state: {
               quizId: data.data.quizId,
               Questions: question,
               Options: options,
             },
-            });
+          });
         })
         .catch((err) => {
           console.error("Fetch error:", err);
@@ -153,9 +141,9 @@ export function PdftoQuiz() {
           id="pdf"
           accept=".pdf"
           onChange={(e) => {
-            handleFileUpload(e);
             if (e.target.files[0]) {
               setFile(e.target.files[0].name);
+              handleFileUpload(e.target.files[0]);
             }
           }}
           className="hidden"
@@ -185,13 +173,7 @@ export function PdftoQuiz() {
         </p>
       </form>
 
-      {pages.length > 0 && (
-        <PdfPagesViewer
-          pages={pages}
-          selectedPages={selectedPages}
-          onPageToggle={handlePageToggle}
-        />
-      )}
+      {pdfs.length > 0 && <PdfPagesViewer pdf={pdfs[pdfs.length - 1]} setPdfs={setPdfs} />}
 
       <button
         type="button"

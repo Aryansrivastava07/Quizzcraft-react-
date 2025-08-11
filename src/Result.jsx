@@ -7,8 +7,8 @@ import {
   useLayoutEffect,
   useMemo,
 } from "react";
-import { DoughnutChart, LineChart } from "./Graphs.jsx";
-import Accordion from "./Accordion.jsx";
+import { DoughnutChart, LineChart } from "./Components/Graphs.jsx";
+import Accordion from "./Components/Accordion.jsx";
 
 export const Result = () => {
   const location = useLocation();

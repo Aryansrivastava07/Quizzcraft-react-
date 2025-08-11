@@ -15,11 +15,11 @@ import {
   faPencil,
 } from "@fortawesome/free-solid-svg-icons";
 import { faIdBadge } from "@fortawesome/free-regular-svg-icons";
-import { Profile } from './Profile.jsx'
-import { QuizCreated } from './QuizCreated.jsx';
-import { QuizAttempted } from './QuizAttempted.jsx';
-import { Notifications } from './Notifications.jsx';
-import { Settings } from './Settings.jsx';
+import { Profile } from './Components/Profile.jsx'
+import { QuizCreated } from './Components/QuizCreated.jsx';
+import { QuizAttempted } from './Components/QuizAttempted.jsx';
+import { Notifications } from './Components/Notifications.jsx';
+import { Settings } from './Components/Settings.jsx';
 
 export const Dashboard = () => {
   const [Isactive, setisactive] = useState("Profile");
