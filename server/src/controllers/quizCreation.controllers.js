@@ -2,32 +2,67 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { GoogleGenAI, createUserContent, createPartFromUri } from "@google/genai";
+import mongoose from "mongoose";
+import Quiz from "../models/quiz.model.js";
 import fs from "fs";
 
 
 
 const quizCreation = asyncHandler(async (req, res, next) => {
     const uploads = req.files;
-
-    if (!uploads || uploads.length === 0) {
-        throw new ApiError(400, "No files were uploaded.");
+    const userPrompt = req.body.prompt;
+    // console.log(req.user);
+    if ((!uploads || uploads.length === 0) && !userPrompt) {
+        throw new ApiError(400, "Please provide either files or a text prompt to generate a quiz.");
     }
 
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    // Use Promise.all with .map to handle asynchronous operations in a loop correctly.
-    // .forEach does not wait for async operations to complete.
-    const uploadPromises = uploads.map(element =>
-        ai.files.upload({
-            file: element.path,
-            config: { mimeType: element.mimetype },
-        })
-    );
+    let fileParts = [];
+    let geminiUploads = [];
 
+    if (uploads && uploads.length > 0) {
+        // Use Promise.all with .map to handle asynchronous operations in a loop correctly.
+        // .forEach does not wait for async operations to complete.
+        const uploadPromises = uploads.map(element =>
+            ai.files.upload({
+                file: element.path,
+                config: { mimeType: element.mimetype },
+            })
+        );
 
-    const geminiUploads = await Promise.all(uploadPromises);
+        geminiUploads = await Promise.all(uploadPromises);
 
-    const fileParts = geminiUploads.map(file => createPartFromUri(file.uri, file.mimeType));
+        // Wait for all files to become active. Videos and large files can take time to process.
+        const activeFilesPromises = geminiUploads.map(async (uploadedFile) => {
+            console.log(`File ${uploadedFile.name} uploaded. Waiting for it to be processed...`);
+            let file = uploadedFile;
+            const startTime = Date.now();
+            const timeout = 180000; // 3 minutes timeout for processing
+            const pollInterval = 5000; // Poll every 5 seconds
+
+            while (file.state === 'PROCESSING' && (Date.now() - startTime < timeout)) {
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                try {
+                    file = await ai.files.get({ name: uploadedFile.name });
+                    console.log(`Current state of ${file.name}: ${file.state}`);
+                } catch (e) {
+                    console.error(`Error getting file status for ${uploadedFile.name}`, e);
+                    throw new ApiError(500, `Could not get status for file ${uploadedFile.name}.`);
+                }
+            }
+
+            if (file.state !== 'ACTIVE') {
+                console.error(`File ${file.name} did not become ACTIVE. Final state: ${file.state}`);
+                throw new ApiError(400, `File ${file.name} could not be processed. Its state is ${file.state}.`);
+            }
+            
+            console.log(`File ${file.name} is now ACTIVE.`);
+            return file;
+        });
+        const activeFiles = await Promise.all(activeFilesPromises);
+        fileParts = activeFiles.map(file => createPartFromUri(file.uri, file.mimeType));
+    }
 
     const quizCreationSchema = {
         type: 'object',
@@ -50,10 +85,6 @@ const quizCreation = asyncHandler(async (req, res, next) => {
                                     type: 'string',
                                     description: "The question for the user."
                                 },
-                                type: {
-                                    type: 'string',
-                                    description: "The type of question, must be 'multiple_choice'."
-                                },
                                 options: {
                                     type: 'array',
                                     description: "A list of 4 multiple choice options.",
@@ -61,12 +92,16 @@ const quizCreation = asyncHandler(async (req, res, next) => {
                                         type: 'string'
                                     }
                                 },
-                                correct_answer: {
+                                answer: {
                                     type: 'integer',
-                                    description: "The 0-based index of the correct answer in the options array."
+                                    description: "The 0 index of the correct answer in the options array."
+                                },
+                                explanation:{
+                                    type: 'string',
+                                    description : "A clear and concise explanation of why the answer is correct."
                                 }
                             },
-                            required: ["question", "type", "options", "correct_answer"]
+                            required: ["question", "options", "answer", "explanation"]
                         }
                     }
                 },
@@ -76,20 +111,25 @@ const quizCreation = asyncHandler(async (req, res, next) => {
         required: ["quiz"]
     };
     const prompt = `
-    From the following PDF content, generate a quiz.
-        Instructions:
-        - Create exactly 10 multiple-choice questions (MCQs).
-        - Ensure all questions and answers are directly answerable from the provided PDF content.
-        - For each MCQ, provide 4 distinct answer options.
-        - title of quiz should be in title key
-        - Output the quiz as a JSON array in questions key . Each object in the array must follow this structure:
-        {
-          "question": "The question text",
-          "type": "multiple_choice",
-          "options": ["Option A", "Option B", "Option C", "Option D"],
-          "correct_answer": "Corerct option index (0-3)"
-        }
-        - Do not include any introductory or concluding remarks—only output the JSON array.
+    Generate a quiz based on the provided content.
+    User's specific instructions: ${userPrompt}
+    
+    General Instructions:
+    - Create exactly 10 multiple-choice questions (MCQs).
+    - Ensure all questions and answers are directly answerable from the provided content.
+    - For each MCQ, provide 4 distinct answer options.
+    - The overall quiz should have a relevant title.
+    - Each question must have a concise explanation for the correct answer.
+    - Output the quiz as a single JSON object. The root object must have a "quiz" key.
+    - The "quiz" object must contain a "title" and a "questions" array.
+    - Each object in the "questions" array must follow this exact structure:
+      {
+        "question": "The full question text.",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "answer": "The string of the correct option.",
+        "explanation": "A brief explanation of why this is the correct answer."
+      }
+    - Do not include any introductory or concluding remarks—only output the JSON object.
     `;
     const countTokensResponse = await ai.models.countTokens({
         model: "gemini-2.5-flash",
@@ -119,6 +159,15 @@ const quizCreation = asyncHandler(async (req, res, next) => {
 
     // Correctly access the generated text from the response
     const generatedText = response.text;
+    const quizData = JSON.parse(generatedText);
+
+    const quiz = new Quiz({
+        title: quizData.quiz.title,
+        questions: quizData.quiz.questions,
+        creatorId: req.user._id,
+    });
+    await quiz.save();
+
 
     // let quizData;
 
@@ -132,13 +181,52 @@ const quizCreation = asyncHandler(async (req, res, next) => {
     //     throw new ApiError(500, "Failed to parse the quiz data from the AI service. Please try again.");
     // }
 
-    console.log(JSON.parse(generatedText));
+    console.log(quizData);
     // Fix the syntax error and pass arguments correctly to ApiResponse
     return res.status(200).json(new ApiResponse(
         200,
         "Quiz generated successfully.",
-        { response: JSON.parse(generatedText) }
+        { response: {quizId : quiz._id} }
     ));
 });
 
-export { quizCreation };
+const getQuiz = asyncHandler(async (req, res, next) => {
+    const { id } = req.query;
+    // console.log(id);
+    if (!id) {
+        throw new ApiError(400, "Quiz id is required.");
+    }
+    const quiz = await Quiz.findById(id);
+    if (!quiz) {
+        throw new ApiError(404, "Quiz not found.");
+    }
+    return res.status(200).json(new ApiResponse(
+        200,
+        "Quiz fetched successfully.",
+        { quiz }
+    ));
+})
+
+const updateQuiz = asyncHandler(async (req, res, next) => {
+    const { id } = req.body;
+    const  updatedQuiz  = JSON.parse(req.body.updatedQuiz);
+    const userId = req.user._id;
+    console.log(updatedQuiz.title);
+    const quiz = await Quiz.findById(id);
+    if(quiz.creatorId.toString() !== userId.toString()){
+        throw new ApiError(403, "You are not authorized to update this quiz.");
+    }
+    
+    if (!quiz) {
+        throw new ApiError(404, "Quiz not found.");
+    }
+    quiz.title = updatedQuiz.title;
+    quiz.questions = updatedQuiz.questions;
+    await quiz.save();
+
+})
+
+export { quizCreation,
+    getQuiz,
+    updateQuiz
+ };

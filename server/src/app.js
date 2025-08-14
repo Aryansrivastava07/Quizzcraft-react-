@@ -14,7 +14,7 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 
-import quizCreation from './routes/quizCreation.routes.js';
+import quizCreation from './routes/quiz.routes.js';
 import user from './routes/user.routes.js';
 
 app.use('/api/v1/user',user);

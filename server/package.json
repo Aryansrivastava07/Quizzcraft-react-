@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "type":"commonjs",
+  "type":"module",
   "license": "ISC",
   "dependencies": {
     "@google/genai": "^1.11.0",
