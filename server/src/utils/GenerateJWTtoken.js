@@ -1,6 +1,6 @@
 
 import { ApiError } from "./ApiError.js";
-import { User } from "../models/user.models.js";
+import  User  from "../models/user.model.js";
 
 const getAccessToken = async(user) =>{
     try {
@@ -13,7 +13,7 @@ const getAccessToken = async(user) =>{
     }
 }
 
-const getefreshToken = async(user) =>{
+const getRefreshToken = async(user) =>{
     try {
         
         const refreshToken = user.generateRefreshToken();
@@ -25,4 +25,4 @@ const getefreshToken = async(user) =>{
     }
 }
 
-export {getAccessToken,getefreshToken};
+export {getAccessToken,getRefreshToken};
