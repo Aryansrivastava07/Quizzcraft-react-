@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faLock, faArrowRight, faUser, faPhone, faUnlock } from "@fortawesome/free-solid-svg-icons";
 
-export const Login = () => {
+export const Authenticate = () => {
   const [canvas,setcanvas] = useState(null);
   return (
     <div className="h-screen w-screen grid place-items-center bg-[linear-gradient(to_right,rgba(228,228,228,.1)_0%,rgba(228,228,228,1)_40%,rgba(228,228,228,.1)_90%)]">
@@ -32,7 +32,7 @@ const LoginForm = ({setcanvas})=>{
             <form action="" method="post" className="w-[60%] place-self-center">
               <div className="h-full w-full flex flex-col">
                 {/* <label htmlFor="userId">User ID </label> */}
-                <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
+                <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5 flex items-center">
                   <FontAwesomeIcon
                     icon={faEnvelope}
                     className="pr-3 text-[#1e3050]"
@@ -41,11 +41,11 @@ const LoginForm = ({setcanvas})=>{
                     type="text"
                     id="userId"
                     name="userId"
-                    className="outline-none "
+                    className="outline-none w-full"
                     placeholder="User ID"
                   />
                 </div>
-                <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
+                <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5 flex items-center">
                   <FontAwesomeIcon
                     icon={faLock}
                     className="pr-3 text-[#1e3050]"
@@ -54,7 +54,7 @@ const LoginForm = ({setcanvas})=>{
                     type="password"
                     id="password"
                     name="password"
-                    className="outline-none"
+                    className="outline-none w-full"
                     placeholder="Password"
                   />
                 </div>

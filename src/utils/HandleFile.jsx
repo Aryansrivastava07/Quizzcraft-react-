@@ -2,11 +2,11 @@
   import { extractPdfPages } from "./PdfUtils";
   export const handleFileUpload = async ({fileUploaded, setPdfs, setChatMessages}) => {
     const reader = new FileReader();
-    reader.readAsArrayBuffer(fileUploaded);
-
+    reader.readAsArrayBuffer(fileUploaded.file);
     reader.onload = async () => {
       const pdfData = {
-        pdf: fileUploaded,
+        name: fileUploaded.name,
+        pdf: fileUploaded.file,
         pdfBytes: new Uint8Array(reader.result),
         pages: 0,
         selectedPages: [],

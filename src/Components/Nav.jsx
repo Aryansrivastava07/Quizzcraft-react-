@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "./ThemeContext";
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 const TogledarkMode = (darkMode) => {
   document.body.classList.toggle("dark");
@@ -12,24 +13,27 @@ const TogledarkMode = (darkMode) => {
 
 export const Nav = ({ children }) => {
   const { darkMode, setDarkMode } = useTheme();
+  const navigate = useNavigate();
 
   return (
-    <nav className="h-[10vh] fixed top-0 w-screen z-10 flex items-center justify-between pl-8 pr-8 backdrop-blur-2xl border-b-2 border-gray-200 bg-[#ffffffb2] backdrop:blur-md dark:bg-[#101828ed] dark:border-gray-800 transition-colors duration-500">
+    <nav className="h-[10vh] fixed top-0 w-screen z-10 flex items-center justify-between pl-8 pr-8 backdrop-blur-2xl border-b-2 border-gray-200 bg-[#ffffffb2] backdrop:blur-md dark:bg-[#0f1726] dark:border-gray-800 transition-colors duration-500">
       <div className="flex items-center gap-5 text-gray-900 dark:text-white">
         <img
-          src="src/assets/logo2.png"
+          src="../src/assets/logo2.png"
           alt="logo"
           className="w-18"
           height="500"
           width="500"
+          onClick={() => navigate("/")}
         />
-        <div className="relative w-12 h-8 rounded-full p-1 bg-gray-200 dark:bg-gray-700 transition-all duration-300 ease-in-out" style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px -50px 36px -28px inset" }}>
-          <div
-            className="toggle absolute top-1/2 -left-0 h-9 w-9 rounded-full bg-gray-600 dark:bg-[#242c3c] -translate-y-1/2 -translate-x-3 dark:translate-x-5 rotate-0 dark:rotate-720 transition-all duration-300 grid place-items-center cursor-pointer"
-            onClick={() => {
+        <div className="relative w-12 h-8 rounded-full p-1 bg-gray-200 dark:bg-gray-700 transition-all duration-300 ease-in-out cursor-pointer" style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px -50px 36px -28px inset " }}
+        onClick={() => {
               setDarkMode(!darkMode);
               TogledarkMode(!darkMode);
-            }}
+            }}>
+          
+          <div
+            className="toggle absolute top-1/2 -left-0 h-9 w-9 rounded-full bg-gray-600 dark:bg-[#242c3c] -translate-y-1/2 -translate-x-3 dark:translate-x-5 rotate-0 dark:rotate-720 transition-all duration-300 grid place-items-center"
             style={{ boxShadow: "rgba(0, 0, 0, 0.35) 0px -50px 36px -28px inset" }}
           >
             {darkMode ? (
