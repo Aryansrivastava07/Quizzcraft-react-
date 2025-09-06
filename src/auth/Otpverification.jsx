@@ -1,11 +1,14 @@
 import { useRef, useState, useEffect } from "react";
+import { userAPI } from "../utils/api";
 
-export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
+export const OtpInput = ({ length = 4, userId, setotpVerified }) => {
   const [userInput, setUserInput] = useState(Array(length).fill(""));
   const inputsRef = useRef([]);
   const [verified,setVerified] = useState(false);
   const [otpsubmit,setotpsubmit] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [Timer, setTimer] = useState(30);
 
   const handleChange = (value, index) => {
     setotpsubmit(false);
@@ -39,7 +42,7 @@ export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
 
     inputsRef.current[length - 1].focus();
   };
-  const [Timer, setTimer] = useState(30);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setTimer((prev) => {
@@ -50,6 +53,55 @@ export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
     }, 1000);
     return () => clearInterval(interval);
   }, [userInput]);
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    setotpsubmit(true);
+
+    const otpString = userInput.join("");
+    
+    if (otpString.length !== 4) {
+      setError("Please enter a valid 4-digit OTP");
+      setVerified(false);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await userAPI.verifyUser(userId, otpString);
+      
+      if (response.success) {
+        setVerified(true);
+        setTimeout(() => {
+          setotpVerified(true);
+        }, 500);
+      } else {
+        setVerified(false);
+        setError(response.message || "Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      setVerified(false);
+      setError("Verification failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!userId) return;
+    
+    try {
+      await userAPI.requestVerificationMail(userId);
+      setTimer(30); // Reset timer
+      setError("");
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      setError("Failed to resend OTP. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -76,22 +128,18 @@ export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
             />
           ))}
         </div>
+        {error && (
+          <div className="text-red-500 text-sm text-center mb-3">
+            {error}
+          </div>
+        )}
         <button
           type="submit"
-          className="w-full bg-green-600 py-3 px-5 outline-none rounded-full my-5 text-white font-bold cursor-pointer"
-          onClick={(e) => {
-            e.preventDefault();
-            setotpsubmit(true);
-            if(ValidateOtp(userInput,CorrectOtp)) {
-                setVerified(true);
-                setTimeout((()=>{
-                setotpVerified(true);
-            }), 500)
-            }
-            else setVerified(false);
-          }}
+          className="w-full bg-green-600 py-3 px-5 outline-none rounded-full my-5 text-white font-bold cursor-pointer disabled:opacity-50"
+          disabled={loading}
+          onClick={handleVerifyOtp}
         >
-          Verify OTP
+          {loading ? "Verifying..." : "Verify OTP"}
         </button>
         {Timer > 0 && (
           <p className="text-center text-sm text-[#333333c3] cursor-pointer hover:text-[#333333] pointer-events-none">
@@ -99,7 +147,10 @@ export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
           </p>
         )}
         {Timer === 0 && (
-          <p className="text-center text-sm text-[#333333c3] cursor-pointer hover:text-[#333333] font-bold">
+          <p 
+            className="text-center text-sm text-[#333333c3] cursor-pointer hover:text-[#333333] font-bold"
+            onClick={handleResendOtp}
+          >
             Resend OTP 
           </p>
         )}
@@ -107,11 +158,3 @@ export const OtpInput = ({ length = 6,CorrectOtp, setotpVerified }) => {
     </>
   );
 };
-function ValidateOtp(userInput,CorrectOtp){
-    let userinput = "";
-    userInput.map((val)=>{
-        userinput += val;
-    })
-    if(userinput === CorrectOtp) return true;
-    return false;
-}

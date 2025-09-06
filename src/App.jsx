@@ -8,6 +8,8 @@ import { QuizPlatform } from "./QuizPlatform.jsx";
 import { Result } from "./Result.jsx";
 import { ThemeProvider } from "./Components/ThemeContext";
 import { QuizProvider } from "./Components/QuizContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./Components/ProtectedRoute";
 import AuthRoutes from './auth/routes';
 
 import {
@@ -53,29 +55,42 @@ function AppContent() {
           {/* <Route path="/auth/*" element={<AuthModule />} /> */}
           <Route path="/auth/*" element={<AuthRoutes />} />
           {/* <Route path="/Login" element={<Authenticate />} /> */}
-          <Route path="/Dashboard" element={<Dashboard />} />
+          <Route 
+            path="/Dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
           <Route
             path="/MakeQuiz"
             element={
-              <QuizProvider>
-                <MakeQuiz />
-              </QuizProvider>
+              <ProtectedRoute>
+                <QuizProvider>
+                  <MakeQuiz />
+                </QuizProvider>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/QuizPlatform"
             element={
-              <QuizProvider>
-                <QuizPlatform />
-              </QuizProvider>
+              <ProtectedRoute>
+                <QuizProvider>
+                  <QuizPlatform />
+                </QuizProvider>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/Result"
             element={
-              <QuizProvider>
-                <Result />
-              </QuizProvider>
+              <ProtectedRoute>
+                <QuizProvider>
+                  <Result />
+                </QuizProvider>
+              </ProtectedRoute>
             }
           />
           <Route path="/MakeQuizver0" element={<MakeQuizver0 />} />
@@ -87,9 +102,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }
 

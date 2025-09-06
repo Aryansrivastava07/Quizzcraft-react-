@@ -9,71 +9,88 @@ import {
 } from "react";
 import { DoughnutChart, LineChart } from "./Components/Graphs.jsx";
 import Accordion from "./Components/Accordion.jsx";
+import { attemptAPI, isAuthenticated } from "./utils/api";
 
 export const Result = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const responses = location.state?.Responses;
-  const quesTimer = location.state?.quesTimer || [];
-  const quizId = location.state?.quizID;
-  const answered = location.state?.answered;
-  const questions = location.state?.questions;
-  const options = location.state?.options;
-  const length = quesTimer.length;
-  const [result, setResult] = useState();
-  const [correctAnswer, setCorrectAnswer] = useState();
-  const [resultFetched, setresultFetched] = useState(false);
-// console.log(responses)
-  // Fetch the answer key from the server
-  const fetchAnswerKey = async () => {
-    // send a request to the server to get the answer key with the quiz ID
-    if (!quizId) {
-      console.error("Quiz ID is not available in the location state.");
+  const attemptId = location.state?.attemptId;
+  const quizId = location.state?.quizId;
+  const score = location.state?.score;
+  const totalQuestions = location.state?.totalQuestions;
+  
+  const [attemptData, setAttemptData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [leaderboard, setLeaderboard] = useState([]);
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/auth/login");
       return;
     }
+    
+    if (!attemptId) {
+      setError("No attempt ID provided");
+      setLoading(false);
+      return;
+    }
+    
+    loadAttemptData();
+    loadLeaderboard();
+  }, [attemptId, navigate]);
+
+  const loadAttemptData = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/answer-key?quizId=${quizId}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch answer key", response.statusText);
+      const response = await attemptAPI.reviewAttempt(attemptId);
+      if (response.success) {
+        setAttemptData(response.data);
+      } else {
+        setError(response.message || "Failed to load attempt data");
       }
-      const data = await response.json();
-      return data.answers;
     } catch (error) {
-      console.error("Error fetching answer key:", error);
-      return [];
+      console.error("Error loading attempt data:", error);
+      setError("Failed to load attempt data. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
-  useEffect(() => {
-    fetchAnswerKey()
-      .then((data) => {
-        setCorrectAnswer(data);
-        // console.log("Correct Answers:", data);
-        // if (responses && data) {
-        //   const score = responses.reduce((acc, response, idx) => {
-        //     return acc + (response === data.answerKey[idx] ? 1 : 0);
-        //   }, 0);
 
-        //   setResult(score);
-        //   setresultFetched(true);
-        // }
-        // Calculate the score based on responses and correct answers
-        // const score = fetchScore(data.answerKey);
-        const answers = data;
-        let score = 0;
-        for (let i = 0; i < responses.length; i++) {
-          if (responses[i] === answers[i]) {
-            score++;
-          }
-        }
-        setResult(score);
-        setresultFetched(true);
-      })
-      .catch((error) => {
-        console.error("Error in fetching answer key:", error);
-      });
-  }, [quizId]);
+  const loadLeaderboard = async () => {
+    if (!quizId) return;
+    
+    try {
+      const response = await attemptAPI.getLeaderboard(quizId);
+      if (response.success) {
+        setLeaderboard(response.data.leaderboard || []);
+      }
+    } catch (error) {
+      console.error("Error loading leaderboard:", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Loading results...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  if (!attemptData) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">No attempt data available</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -84,7 +101,7 @@ export const Result = () => {
               Score
             </h2>
             <p className="font-bold text-center text-5xl text-[#041b43] place-self-start">
-              {result} / 10
+              {attemptData.score} / {attemptData.totalQuestions}
             </p>
           </div>
           <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-5  grid grdo-rows-2 items-center justify-center">
@@ -92,13 +109,11 @@ export const Result = () => {
               Correct Answers
             </h2>
             <div className="max-h-full box-border">
-              {resultFetched && (
-                <DoughnutChart
-                  answered={answered}
-                  result={result}
-                  length={length}
-                />
-              )}
+              <DoughnutChart
+                answered={attemptData.totalQuestions}
+                result={attemptData.score}
+                length={attemptData.totalQuestions}
+              />
             </div>
           </div>
         </div>
@@ -108,53 +123,46 @@ export const Result = () => {
               Time Spent in each Question
             </h2>
             <div className="max-h-full w-full pt-10 box-border relative ">
-              {resultFetched && <LineChart quesTimer={quesTimer} />}
+              <LineChart quesTimer={attemptData.responses?.map(r => r.timeSpent) || []} />
             </div>
           </div>
           <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-5">
             <h2 className="font-bold text-2xl text-[#041b43]">Leaderboard</h2>
+            <div className="mt-4 max-h-64 overflow-y-auto">
+              {leaderboard.length > 0 ? (
+                leaderboard.map((entry, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b">
+                    <span className="font-medium">{entry.username}</span>
+                    <span className="text-sm text-gray-600">{entry.score}/{entry.totalQuestions}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-500">No leaderboard data available</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
       <h1 className="font-bold text-5xl text-center text-[#041b43] m-5 mt-10">
-        Review your Answeres
+        Review your Answers
       </h1>
       <div className=" w-full m-auto justify-center items-center px-25 bg-[#f5f6f9] shadow-2xl">
-        {resultFetched && <Review
-          questions={questions}
-          options={options}
-          correctAnswer={correctAnswer}
-          responses={responses}
-          quesTimer={quesTimer}
-        />}
+        <Review attemptData={attemptData} />
       </div>
     </>
   );
 };
-const Review = ({
-  questions,
-  options,
-  correctAnswer,
-  responses,
-  quesTimer,
-}) => {
-  function title(index, ques, ans) {
-    // const correctAnswerImg = "https://st.depositphotos.com/12141488/52464/i/450/depositphotos_524641226-stock-photo-raster-yes-icon-illustration.jpg";
-    // const correctAnswerImg = "https://cdn3.iconfinder.com/data/icons/flat-actions-icons-9/792/Tick_Mark_Circle-512.png";
+const Review = ({ attemptData }) => {
+  const { quiz, responses } = attemptData;
+  function title(index, question, userAnswer, isCorrect) {
     const correctAnswerImg = "src/assets/correct.png";
-
-    // const wrongAnswerImg = "https://static.vecteezy.com/system/resources/previews/014/313/137/non_2x/red-cross-icon-for-things-that-should-not-be-done-or-forbidden-png.png";
     const wrongAnswerImg = "src/assets/incorrect.png";
 
     return (
       <div className="flex flex-col w-full">
         <span className="flex flex-row items-center-safe gap-2">
           <img
-            src={
-              (responses[index - 1] === (correctAnswer[index - 1].correct_answer - '0')
-                ? correctAnswerImg
-                : wrongAnswerImg)
-            }
+            src={isCorrect ? correctAnswerImg : wrongAnswerImg}
             className="w-6 h-6"
             alt=""
           />
@@ -162,8 +170,8 @@ const Review = ({
             Question {index}
           </h2>
           <div className="">
-            <h2 className="text-xl font-bold text-gray-800 "> {ques} </h2>
-            <p className="text-sm text-gray-500">Your answer: {ans}</p>
+            <h2 className="text-xl font-bold text-gray-800 "> {question.question} </h2>
+            <p className="text-sm text-gray-500">Your answer: {userAnswer || "Not answered"}</p>
           </div>
         </span>
       </div>
@@ -171,56 +179,54 @@ const Review = ({
   }
   return (
     <>
-     {/* <div className="h-screen bg-amber-500 w-full"></div> */}
-      {correctAnswer && (
+      {quiz && responses && (
         <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-10">
-          {questions.map((ques, idx) => (
-            <Accordion
-              title={title(idx + 1, ques, options[idx][responses[idx]])}
-              isright={responses[idx] === correctAnswer[idx].correct_answer - '0'}
-              key={idx}
-            >
-              <div className="flex flex-col gap-5">
-                <span className="flex flex-row">
-                  <img
-                    src="src/assets/correct.png"
-                    className="w-5 h-5 mr-1"
-                    alt=""
-                  />{" "}
-                  <p className="text-green-600 font-bold">
-                    Correct Asswer : &nbsp;
-                  </p>
-                  {options[idx][(correctAnswer[idx].correct_answer - '0')]}
-                </span>
-                <span className="flex flex-row">
-                  <img
-                    src="src/assets/timetaken.png"
-                    className="w-5 h-5 mr-1"
-                    alt=""
-                  />{" "}
-                  <p className=" font-bold">Time Taken : &nbsp;</p>
-                  {30 - quesTimer[idx]} sec
-                </span>
-                <span className="flex flex-row">
-                  {/* <img
-                    src="src/assets/timetaken.png"
-                    className="w-5 h-5 mr-1"
-                    alt=""
-                  />{" "} */}
-                  💡
-                  <p className="font-bold whitespace-nowrap ">
-                    Explanation : &nbsp;
-                  </p>
-                  <p className="flex flex-wrap">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                    Enim eius magnam tempora magni eligendi dolor delectus
-                    quisquam voluptas, possimus nobis, mollitia a laboriosam
-                    nemo assumenda.
-                  </p>
-                </span>
-              </div>
-            </Accordion>
-          ))}
+          {quiz.questions.map((question, idx) => {
+            const userResponse = responses.find(r => r.questionIndex === idx);
+            const userAnswer = userResponse?.selectedOption !== null ? 
+              question.options[userResponse.selectedOption] : null;
+            const isCorrect = userResponse?.selectedOption === question.answer;
+            
+            return (
+              <Accordion
+                title={title(idx + 1, question, userAnswer, isCorrect)}
+                isright={isCorrect}
+                key={idx}
+              >
+                <div className="flex flex-col gap-5">
+                  <span className="flex flex-row">
+                    <img
+                      src="src/assets/correct.png"
+                      className="w-5 h-5 mr-1"
+                      alt=""
+                    />{" "}
+                    <p className="text-green-600 font-bold">
+                      Correct Answer : &nbsp;
+                    </p>
+                    {question.options[question.answer]}
+                  </span>
+                  <span className="flex flex-row">
+                    <img
+                      src="src/assets/timetaken.png"
+                      className="w-5 h-5 mr-1"
+                      alt=""
+                    />{" "}
+                    <p className=" font-bold">Time Taken : &nbsp;</p>
+                    {userResponse?.timeSpent || 0} sec
+                  </span>
+                  <span className="flex flex-row">
+                    💡
+                    <p className="font-bold whitespace-nowrap ">
+                      Explanation : &nbsp;
+                    </p>
+                    <p className="flex flex-wrap">
+                      {question.explanation || "No explanation available."}
+                    </p>
+                  </span>
+                </div>
+              </Accordion>
+            );
+          })}
         </div>
       )}
     </>

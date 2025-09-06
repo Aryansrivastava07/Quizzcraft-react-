@@ -39,54 +39,6 @@ const GeneratePdf = async ({ pdf }) => {
     const blob = new Blob([newPdfBytes], { type: "application/pdf" });
     const renamedFile = new File([blob], pdf.name, { type: "application/pdf" });
     return renamedFile;
-    // const url = URL.createObjectURL(blob);
-    // const a = document.createElement("a");
-    // a.href = url;
-    // URL.revokeObjectURL(url);
-    // window.generatedPdfBlob = blob;
-    // window.generatedPdfUrl = url;
-
-    // const formData = new FormData();
-    // formData.append("pdf", blob, "selected_pages.pdf");
-    // Make API call to your backend to handle the PDF blob
-    //   setLoading(true);
-    // fetch("http://localhost:5000/upload-pdf", {
-    //   method: "POST",
-    //   body: formData,
-    // })
-    //   .then((res) => {
-    //     if (!res.ok) {
-    //       return res.json().then((errorData) => {
-    //         throw new Error(
-    //           errorData.message || "Network response was not ok"
-    //         );
-    //       });
-    //     }
-    //     return res.json();
-    //   })
-    //   .then((data) => {
-    //     // setQuizData(data.data.quiz);
-    //     console.log("Quiz Data:", data.data.quiz);
-    //     // Navigate to QuizPlatform with the quiz data
-    //     const question = data.data.quiz.map((q) => q.question);
-    //     const options = data.data.quiz.map((q) => q.options);
-    //     console.log("Navigating to QuizPlatform with data:", {
-    //       quizId: data.data.quizId,
-    //       Questions: question,
-    //       Options: options,
-    //     });
-    //     navigate("/QuizPlatform", {
-    //       state: {
-    //         quizId: data.data.quizId,
-    //         Questions: question,
-    //         Options: options,
-    //       },
-    //     });
-    //   })
-    //   .catch((err) => {
-    //     console.error("Fetch error:", err);
-    //     alert("Error generating PDF: " + err.message);
-    //   });
   } catch (error) {
     console.error("Error generating PDF:", error);
     alert("Error generating PDF. Check the console for details.");
@@ -110,7 +62,7 @@ const callGeneratePdf = async (pdfArray) => {
     pdfArray.map(async (pdf) => {
       try {
         const Updatedpdf = await GeneratePdf({ pdf });
-         DatatoSend.pdf = [...DatatoSend.pdf, Updatedpdf];
+        DatatoSend.pdf = [...DatatoSend.pdf, Updatedpdf];
       } catch (error) {
         console.error("Error processing PDF:", error);
         return null; // Or handle how you want to skip failed ones
@@ -122,8 +74,17 @@ const callGeneratePdf = async (pdfArray) => {
   return editedPdfs.filter((f) => f !== null);
 };
 
-export const handleGenerate = async ({ uploadedFiles, setQuizData , setAnskey , setQuizId }) => {
-  if (uploadedFiles.pdf.length > 0 || uploadedFiles.image.length > 0 || uploadedFiles.video.length > 0) {
+export const handleGenerate = async ({
+  uploadedFiles,
+  setQuizData,
+  setAnskey,
+  setQuizId,
+}) => {
+  if (
+    uploadedFiles.pdf.length > 0 ||
+    uploadedFiles.image.length > 0 ||
+    uploadedFiles.video.length > 0
+  ) {
     for (const pdf of uploadedFiles.pdf) {
       if (pdf.selectedPages.length === 0) {
         console.error(`No pages selected for PDF: ${pdf.name}`);
@@ -133,36 +94,97 @@ export const handleGenerate = async ({ uploadedFiles, setQuizData , setAnskey , 
     await callGeneratePdf(uploadedFiles.pdf);
     DatatoSend.image = uploadedFiles.image;
     DatatoSend.video = uploadedFiles.video;
-    fecthResponse(DatatoSend, setQuizData,setAnskey, setQuizId);
-  }
-  else {
+    fecthResponse(DatatoSend, setQuizData, setAnskey, setQuizId);
+  } else {
     console.error("No files uploaded!");
   }
 };
 
-const fecthResponse = async (DatatoSend, setQuizData,setAnskey , setQuizId) => {
+const fecthResponse = async (DatatoSend, setQuizData, setAnskey, setQuizId) => {
   const formData = new FormData();
-  DatatoSend.pdf.forEach((file, idx) => formData.append(`pdf${idx}`, file));
-  DatatoSend.image.forEach((file, idx) => formData.append(`image${idx}`, file.file));
-  DatatoSend.video.forEach((file, idx) => formData.append(`video${idx}`, file.file));
+  // The server's multer middleware expects an array of files under the 'files' field name.
+  DatatoSend.pdf.forEach((file) => formData.append("files", file));
+  DatatoSend.image.forEach((file) => formData.append("files", file.file));
+  DatatoSend.video.forEach((file) => formData.append("files", file.file));
 
   if (DatatoSend.prompt) {
     formData.append("prompt", DatatoSend.prompt);
   }
 
-  fetch("http://localhost:5000/generate-quiz", {
-    method: "POST",
-    body: formData,
-  })
-    .then((res) => {
-      return res.json();
-    })
-    .then((data) => {
-      setQuizData(data.data.quiz);
-      setQuizId(data.data.quizId);
-      setAnskey(data.answerKey);
-    })
-    .catch((err) => {
-      console.error("Fetch error:", err);
-    });
+  // Assuming the auth token is stored in localStorage.
+  // The 'authenticateUser' middleware on the server requires this.
+  const token = localStorage.getItem("accessToken");
+  if (!token) {
+    alert("Authentication error. Please log in.");
+    return;
+  }
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    // 'Content-Type' is not set for FormData; the browser sets it with the correct boundary.
+  };
+
+  try {
+    // Step 1: Call the quizCreation endpoint. It returns the ID of the created quiz.
+    const createQuizResponse = await fetch(
+      "http://localhost:5000/api/v1/quiz/quizCreation",
+      {
+        method: "POST",
+        headers,
+        body: formData,
+      }
+    );
+
+    if (!createQuizResponse.ok) {
+      const errorData = await createQuizResponse.json();
+      throw new Error(
+        errorData.message || "Network response was not ok during quiz creation"
+      );
+    }
+
+    const creationData = await createQuizResponse.json();
+    const newQuizId = creationData.data.response.quizId;
+
+    if (!newQuizId) {
+      throw new Error("Server did not return a quiz ID after creation.");
+    }
+
+    setQuizId(newQuizId);
+
+    // Step 2: Use the new quiz ID to fetch the full quiz data.
+    const getQuizResponse = await fetch(
+      `http://localhost:5000/api/v1/quiz/getQuiz?id=${newQuizId}`,
+      {
+        method: "GET",
+        headers,
+      }
+    );
+
+    if (!getQuizResponse.ok) {
+      const errorData = await getQuizResponse.json();
+      throw new Error(
+        errorData.message || "Failed to fetch the created quiz data."
+      );
+    }
+
+    const quizDataResponse = await getQuizResponse.json();
+    const quiz = quizDataResponse.data.quiz;
+
+    if (!quiz) {
+      throw new Error("Server did not return quiz data.");
+    }
+
+    // The server returns the full quiz object, including answers.
+    // We can now set the state for the quiz and the answer key.
+    setQuizData(quiz);
+
+    const answerKey = quiz.questions.map((q) => ({
+      correct_answer: q.answer,
+      explanation: q.explanation,
+    }));
+    setAnskey(answerKey);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    alert(`Error generating quiz: ${err.message}`);
+  }
 };

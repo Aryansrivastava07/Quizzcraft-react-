@@ -6,15 +6,41 @@ import { ApiError } from "../utils/ApiError.js";
 export const authenticateUser = async(req,res,next) =>{
     try {
         const accessToken = req.header("Authorization")?.replace("Bearer ","");
-        if(!accessToken) throw new ApiError(400,"Unauthorized access");
+        if(!accessToken) {
+            return res.status(401).json({
+                success: false,
+                message: "Access token is required",
+                statusCode: 401
+            });
+        }
+        
         const decode = jwt.verify(accessToken,process.env.ACCESS_TOKEN_SECRET);
         const user = await User.findById(decode._id).select("-password -refreshToken");
-        if(!user.verified) throw new ApiError(400,"User not verified");
-        if(!user) throw new ApiError(400,"Unauthorized access");
+        
+        if(!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid access token",
+                statusCode: 401
+            });
+        }
+        
+        if(!user.verified) {
+            return res.status(401).json({
+                success: false,
+                message: "User not verified",
+                statusCode: 401
+            });
+        }
+        
         req.user = user;
         next();
     } catch (error) {
-        console.log(error);
-        next(new ApiError(500, error?.message || "Verification unsuccessfull"));
+        console.log("Authentication error:", error);
+        return res.status(401).json({
+            success: false,
+            message: error?.message || "Authentication failed",
+            statusCode: 401
+        });
     }
 }

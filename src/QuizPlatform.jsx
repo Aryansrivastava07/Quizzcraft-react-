@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, react } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { attemptAPI, isAuthenticated } from "./utils/api";
 // import { Questions, Options } from './dump/TestQuiz';
 
 const useIsTabActive = () => {
@@ -20,20 +21,19 @@ const useIsTabActive = () => {
 };
 
 export const QuizPlatform = () => {
-  const isTabActive = useIsTabActive(); // ✅ Move this to the top level
+  const isTabActive = useIsTabActive();
   const location = useLocation();
   const navigate = useNavigate();
-  const quizId = location.state?.quizId || "quiz-1752351409162"; // ✅ Use quizId from location state or default value
-  // ✅ Initialize questions and options state
-  const questions = location.state?.Questions; // ✅ Initialize questions state
-  const options = location.state?.Options; // ✅ Initialize questions state
-  // Get quiz data from location state or use default QuizData
-  // console.log("Options:", options);
-  // useEffect(() => {
-  //   setQuestions(location.state?.Questions);
-  //   setOptions(location.state?.Options );
-  // }, [location.state]);
-  const length = 10;
+  const quizId = location.state?.quizId;
+  
+  const [quizData, setQuizData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [attemptId, setAttemptId] = useState(null);
+  
+  const questions = quizData?.questions?.map(q => q.question) || [];
+  const options = quizData?.questions?.map(q => q.options) || [];
+  const length = questions.length || 10;
 
   const [answered, setAnswered] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -44,21 +44,74 @@ export const QuizPlatform = () => {
     [...Array(length)].map(() => 30)
   );
 
-  // ✅ Handle form submission
+  // Check authentication on component mount
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/auth/login");
+      return;
+    }
+    
+    if (!quizId) {
+      setError("No quiz ID provided");
+      setLoading(false);
+      return;
+    }
+    
+    loadQuizData();
+  }, [quizId, navigate]);
 
-  function handleSubmit() {
-    console.log("Submitting quiz...");
-    navigate("/Result", {
-      state: {
-        quizID: quizId ,
-        questions: questions,
-        options: options,
-        Responses: Responses,
-        quesTimer: quesTimer,
-        answered: answered,
-      },
-    });
-  }
+  const loadQuizData = async () => {
+    try {
+      const response = await attemptAPI.startQuiz(quizId);
+      if (response.success) {
+        setQuizData(response.data.quiz);
+        setAttemptId(response.data.attemptId);
+      } else {
+        setError(response.message || "Failed to load quiz");
+      }
+    } catch (error) {
+      console.error("Error loading quiz:", error);
+      setError("Failed to load quiz. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!attemptId) {
+      setError("No attempt ID available");
+      return;
+    }
+
+    try {
+      const attemptData = {
+        responses: Responses.map((response, index) => ({
+          questionIndex: index,
+          selectedOption: response === 4 ? null : response,
+          timeSpent: 30 - quesTimer[index]
+        })),
+        totalTimeSpent: quesTimer.reduce((acc, time) => acc + (30 - time), 0)
+      };
+
+      const response = await attemptAPI.submitAttempt(quizId, attemptData);
+      
+      if (response.success) {
+        navigate("/Result", {
+          state: {
+            attemptId: attemptId,
+            quizId: quizId,
+            score: response.data.score,
+            totalQuestions: length
+          },
+        });
+      } else {
+        setError(response.message || "Failed to submit quiz");
+      }
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+      setError("Failed to submit quiz. Please try again.");
+    }
+  };
 
   function handleOptionSelect(index) {
     return () => {
@@ -137,9 +190,33 @@ export const QuizPlatform = () => {
   }, [currentQuestionIndex, length, isTabActive]);
 
   // ... your JSX return ...
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">Loading quiz...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-red-500 text-xl">{error}</div>
+      </div>
+    );
+  }
+
+  if (!quizData || questions.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-xl">No quiz data available</div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <NavBar />
+      <NavBar quizName={quizData.title} />
       <div className="flex h-[calc(100vh-72px)]">
         {/* /* Left Panel */}
         <LeftPanel
@@ -183,7 +260,7 @@ export const QuizPlatform = () => {
             <h2 className="text-2xl font-bold mb-4 pl-5">
               {questions[currentQuestionIndex]}
             </h2>
-            {options[currentQuestionIndex].map((option, index) => (
+            {options[currentQuestionIndex]?.map((option, index) => (
               <div
                 key={index}
                 id={`option-${index}`}
@@ -254,8 +331,7 @@ export const QuizPlatform = () => {
     </>
   );
 }
-const NavBar = () => {
-  const quizName = location.state?.quizName || "Quiz";
+const NavBar = ({ quizName = "Quiz" }) => {
   return (
     <nav className="w-full flex items-center justify-between px-8 shadow bg-amber-10">
       <div className="font-bold text-xl">

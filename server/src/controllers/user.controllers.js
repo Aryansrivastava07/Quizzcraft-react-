@@ -1,14 +1,18 @@
-import { asyncHandler } from "../utils/AsyncHandler.js";
 import User from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import nodemailer from "nodemailer";
-import { uploadOnCludinary } from "../utils/cloudinary.js";
+import { asyncHandler } from "../utils/AsyncHandler.js";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../utils/sendEmail.js";
+import fs from "fs";
+import path from "path";
+import cloudinary from "../config/cloudinary.config.js";
 import { getAccessToken, getRefreshToken } from "../utils/generateJWTtoken.js";
 import mongoose from "mongoose";
 
 const userRegister = asyncHandler(async (req, res, next) => {
     const { username, email, password } = req.body;
+    console.log( username , email, password);
     if (!username || !email || !password) {
         throw new ApiError(400, "All fields are required.");
     }
@@ -199,9 +203,184 @@ const getUser = asyncHandler(async (req, res, next) => {
     }
     return res.status(200).json(new ApiResponse(200, "User fetched successfully.", { user }));
 })
+
+const updateProfile = asyncHandler(async (req, res, next) => {
+    const userId = req.user._id;
+    const { fullName, phone, address, dateOfBirth } = req.body;
     
+    const updateData = {};
+    if (fullName) updateData.username = fullName;
+    if (phone) updateData.mobileNo = phone;
+    if (address) updateData.address = address;
+    if (dateOfBirth) updateData.dateOfBirth = dateOfBirth;
+    
+    const user = await User.findByIdAndUpdate(
+        userId,
+        updateData,
+        { new: true, runValidators: true }
+    ).select("-password -refreshToken");
+    
+    if (!user) {
+        throw new ApiError(404, "User not found.");
+    }
+    
+    return res.status(200).json(new ApiResponse(200, "Profile updated successfully.", { user }));
+})
 
+const uploadAvatar = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded",
+                statusCode: 400
+            });
+        }
 
+        const userId = req.user._id;
+        
+        // Get current user to check for existing avatar
+        const currentUser = await User.findById(userId);
+        
+        let avatarUrl;
+        
+        // Check if Cloudinary is configured
+        const isCloudinaryConfigured = process.env.CLOUDINARY_CLOUD_NAME && 
+                                     process.env.CLOUDINARY_API_KEY && 
+                                     process.env.CLOUDINARY_API_SECRET;
+        
+        if (isCloudinaryConfigured) {
+            try {
+                // Delete old avatar from Cloudinary if it exists and is a Cloudinary URL
+                if (currentUser.profilePicture && currentUser.profilePicture.includes('cloudinary.com')) {
+                    try {
+                        const urlParts = currentUser.profilePicture.split('/');
+                        const publicIdWithExtension = urlParts[urlParts.length - 1];
+                        const publicId = publicIdWithExtension.split('.')[0];
+                        await cloudinary.uploader.destroy(`quizcraft/avatars/${publicId}`);
+                        console.log('Old avatar deleted from Cloudinary:', publicId);
+                    } catch (deleteError) {
+                        console.log('Error deleting old avatar from Cloudinary:', deleteError);
+                    }
+                }
+
+                // Upload to Cloudinary directly using buffer
+                const uploadResult = await new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        {
+                            folder: 'quizcraft/avatars',
+                            public_id: `avatar-${userId}-${Date.now()}`,
+                            transformation: [
+                                { width: 300, height: 300, crop: 'fill', gravity: 'face' },
+                                { quality: 'auto' }
+                            ]
+                        },
+                        (error, result) => {
+                            if (error) reject(error);
+                            else resolve(result);
+                        }
+                    );
+                    uploadStream.end(req.file.buffer);
+                });
+
+                avatarUrl = uploadResult.secure_url;
+                console.log('Avatar uploaded to Cloudinary successfully');
+                
+            } catch (cloudinaryError) {
+                console.log('Cloudinary upload failed, falling back to local storage:', cloudinaryError);
+                // Fall back to local storage
+                avatarUrl = await saveToLocalStorage(req.file, userId, currentUser);
+            }
+        } else {
+            console.log('Cloudinary not configured, using local storage');
+            // Use local storage
+            avatarUrl = await saveToLocalStorage(req.file, userId, currentUser);
+        }
+        
+        // Update user's profile picture in database
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { profilePicture: avatarUrl },
+            { new: true }
+        ).select("-password -refreshToken");
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+                statusCode: 404
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Avatar uploaded successfully",
+            data: {
+                avatarUrl: avatarUrl,
+                user: updatedUser
+            },
+            statusCode: 200
+        });
+
+    } catch (error) {
+        console.error("Avatar upload error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to upload avatar",
+            statusCode: 500
+        });
+    }
+};
+
+// Helper function to save avatar to local storage
+const saveToLocalStorage = async (file, userId, currentUser) => {
+    const uploadPath = "./public/avatars";
+    
+    // Create directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+        fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    // Delete old avatar file if it exists and is local
+    if (currentUser.profilePicture && !currentUser.profilePicture.includes('cloudinary.com')) {
+        const oldAvatarPath = path.join(process.cwd(), 'public', currentUser.profilePicture);
+        if (fs.existsSync(oldAvatarPath)) {
+            try {
+                fs.unlinkSync(oldAvatarPath);
+                console.log('Old local avatar deleted:', oldAvatarPath);
+            } catch (deleteError) {
+                console.log('Error deleting old local avatar:', deleteError);
+            }
+        }
+    }
+    
+    // Generate filename and save file
+    const filename = `avatar-${userId}-${Date.now()}.jpg`;
+    const filePath = path.join(uploadPath, filename);
+    
+    // Write buffer to file
+    fs.writeFileSync(filePath, file.buffer);
+    
+    return `/avatars/${filename}`;
+};
+
+const getAvatar = asyncHandler(async (req, res, next) => {
+    const userId = req.user._id;
+    
+    const user = await User.findById(userId).select("profilePicture");
+    if (!user) {
+        throw new ApiError(404, "User not found.");
+    }
+    
+    if (!user.profilePicture) {
+        return res.status(200).json(new ApiResponse(200, "No avatar found.", { avatarUrl: null }));
+    }
+    
+    const filename = user.profilePicture.split('/').pop();
+    const avatarUrl = `/avatars/${filename}`;
+    
+    return res.status(200).json(new ApiResponse(200, "Avatar fetched successfully.", { avatarUrl }));
+})
 
 export {
     userRegister,
@@ -210,5 +389,8 @@ export {
     userLogin,
     userLogout,
     userRefreshToken,
-    getUser
+    getUser,
+    updateProfile,
+    uploadAvatar,
+    getAvatar
 };

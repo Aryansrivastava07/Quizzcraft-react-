@@ -5,10 +5,12 @@ import { Chat } from "./Components/ChatBubble";
 import { useQuiz } from "./Components/QuizContext";
 import { useChatPresets } from "./Components/ChatPresets";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 
 export const MakeQuiz = () => {
   const navigate = useNavigate();
   const data = useLocation();
+  const { isLoggedIn } = useAuth();
   const {
     quizData,
     setQuizData,
@@ -33,6 +35,11 @@ export const MakeQuiz = () => {
   ]);
   const presets = useChatPresets(setChatMessages);
   useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/auth/login');
+      return;
+    }
+    
     const chatContainer = document.querySelector(".overflow-y-auto");
     if (chatContainer) {
       chatContainer.scrollTo({
@@ -40,7 +47,7 @@ export const MakeQuiz = () => {
         behavior: "smooth",
       });
     }
-  }, [chatMessages]);
+  }, [chatMessages, isLoggedIn, navigate]);
 
   useEffect(() => {
     if (uploadedFiles.pdf.length > 0) {
@@ -82,17 +89,15 @@ export const MakeQuiz = () => {
               <button
                 className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
                 onClick={() => {
-                  const question = quizData.map((q) => q.question);
-                  const options = quizData.map((q) => q.options);
-                  console.log(quizData);
-                  // console.log(question,options,quizData[0].quizId);
-                  navigate("/QuizPlatform", {
-                    state: {
-                      quizId: quizId,
-                      Questions: question,
-                      Options: options,
-                    },
-                  });
+                  if (quizId) {
+                    navigate("/QuizPlatform", {
+                      state: {
+                        quizId: quizId,
+                      },
+                    });
+                  } else {
+                    alert("No quiz ID available. Please create a quiz first.");
+                  }
                 }}
               >
                 Attempt Quiz

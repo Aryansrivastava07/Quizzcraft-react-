@@ -3,6 +3,7 @@ import { React } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "./ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
@@ -13,7 +14,13 @@ const TogledarkMode = (darkMode) => {
 
 export const Nav = ({ children }) => {
   const { darkMode, setDarkMode } = useTheme();
+  const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth/login');
+  };
 
   return (
     <nav className="h-[10vh] fixed top-0 w-screen z-10 flex items-center justify-between pl-8 pr-8 backdrop-blur-2xl border-b-2 border-gray-200 bg-[#ffffffb2] backdrop:blur-md dark:bg-[#0f1726] dark:border-gray-800 transition-colors duration-500">
@@ -46,6 +53,19 @@ export const Nav = ({ children }) => {
       </div>
       <menu className="relative flex items-center justify-between flex-wrap">
         {children}
+        {isLoggedIn && (
+          <div className="flex items-center gap-4 ml-4">
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Welcome, {user?.username}
+            </span>
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </menu>
     </nav>
   );

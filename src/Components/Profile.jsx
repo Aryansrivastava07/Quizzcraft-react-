@@ -1,4 +1,4 @@
-import { useState , React } from "react";
+import { useState, useEffect, React } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faGear,
@@ -11,30 +11,197 @@ import {
   faPencil,
 } from "@fortawesome/free-solid-svg-icons";
 import { faIdBadge } from "@fortawesome/free-regular-svg-icons";
+import { userAPI, quizAPI, attemptAPI } from "../utils/api";
+import { useAuth } from "../contexts/AuthContext";
+
 export const Profile = () => {
+  const { user } = useAuth();
   const [editable, seteditable] = useState(false);
   const [profileImg, setProfileImg] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfileImg(URL.createObjectURL(file));
+      try {
+        // Show preview immediately
+        setProfileImg(URL.createObjectURL(file));
+        
+        // Upload to backend
+        const response = await userAPI.uploadAvatar(file);
+        console.log('Avatar upload response:', response);
+        
+        if (response.success) {
+          // Update the profile image URL from backend
+          // Check if it's a Cloudinary URL (full URL) or local path
+          const avatarUrl = response.data.avatarUrl.startsWith('http') 
+            ? response.data.avatarUrl 
+            : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${response.data.avatarUrl}`;
+          setProfileImg(avatarUrl);
+          console.log('Avatar uploaded successfully');
+        } else {
+          console.error('Avatar upload failed:', response.message);
+          setError('Failed to upload avatar. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error uploading avatar:', error);
+        setError('Failed to upload avatar. Please try again.');
+      }
     }
   };
 
   const [userData, setUserData] = useState({
-    name: "Akshat Yadav",
-    joined: "January 2025",
-    email: "ashat.yadav2004@gmail.com",
-    number: "8789798789",
-    password: "teoiffo2",
-    quizCreated: "20",
-    quiSubmited: "10",
-    averageScore: "82",
-    address: "Kanpur",
+    name: "",
+    joined: "",
+    email: "",
+    number: "",
+    password: "",
+    quizCreated: 0,
+    quiSubmited: 0,
+    averageScore: 0,
+    address: "",
     dob: "",
-    username: "akshat_yadav",
+    username: "",
   });
+
+  const [dashboardStats, setDashboardStats] = useState({
+    quizzesCreated: 0,
+    quizzesAttempted: 0,
+    averageScore: 0,
+  });
+
+  // Fetch user data and dashboard stats
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch current user data
+        const userResponse = await userAPI.getCurrentUser();
+        console.log('User data response:', userResponse);
+        
+        // Fetch user avatar
+        let avatarResponse = null;
+        try {
+          avatarResponse = await userAPI.getAvatar();
+          console.log('Avatar response:', avatarResponse);
+        } catch (avatarError) {
+          console.log('Avatar fetch failed:', avatarError);
+          // Continue without avatar if fetch fails
+        }
+        
+        if (userResponse.success && userResponse.data) {
+          const user = userResponse.data.user || userResponse.data;
+          
+          // Set avatar if available
+          if (avatarResponse && avatarResponse.success && avatarResponse.data && avatarResponse.data.avatarUrl) {
+            // Check if it's a Cloudinary URL (full URL) or local path
+            const avatarUrl = avatarResponse.data.avatarUrl.startsWith('http') 
+              ? avatarResponse.data.avatarUrl 
+              : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${avatarResponse.data.avatarUrl}`;
+            setProfileImg(avatarUrl);
+          }
+          
+          // Fetch user's created quizzes
+          const quizzesResponse = await quizAPI.getQuizById();
+          console.log('Quizzes response:', quizzesResponse);
+          
+          // Fetch user's attempt history
+          const attemptsResponse = await attemptAPI.getAttemptHistory();
+          console.log('Attempts response:', attemptsResponse);
+          
+          const quizzesCreated = quizzesResponse.success ? (quizzesResponse.data?.length || 0) : 0;
+          const attempts = attemptsResponse.success ? (attemptsResponse.data || []) : [];
+          const quizzesAttempted = attempts.length;
+          
+          // Calculate average score
+          let averageScore = 0;
+          if (attempts.length > 0) {
+            const totalScore = attempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
+            averageScore = Math.round(totalScore / attempts.length);
+          }
+          
+          // Format join date
+          const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+            month: 'long', 
+            year: 'numeric' 
+          }) : 'Recently';
+          
+          setUserData({
+            name: user.fullName || user.name || user.username || '',
+            joined: joinDate,
+            email: user.email || '',
+            number: user.phone || user.phoneNumber || user.mobileNo || '',
+            password: '••••••••', // Don't show actual password
+            quizCreated: quizzesCreated,
+            quiSubmited: quizzesAttempted,
+            averageScore: averageScore,
+            address: user.address || '',
+            dob: user.dateOfBirth || user.dob || '',
+            username: user.username || '',
+          });
+          
+          setDashboardStats({
+            quizzesCreated,
+            quizzesAttempted,
+            averageScore,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setError('Failed to load user data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
+  // Handle form submission for profile updates
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const profileData = {
+        fullName: userData.name,
+        phone: userData.number,
+        address: userData.address,
+        dateOfBirth: userData.dob,
+      };
+      
+      const response = await userAPI.updateProfile(profileData);
+      if (response.success) {
+        seteditable(false);
+        console.log('Profile updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError('Failed to update profile. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-xl text-gray-600">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-xl text-red-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
@@ -108,7 +275,7 @@ const handleImageUpload = (e) => {
         <div className="p-2">
           <h2 className="text-[#979da9]">Account Details</h2>
           <form
-            action=""
+            onSubmit={handleSubmit}
             className="grid grid-cols-2 place-items-center gap-5 p-2"
           >
             {[

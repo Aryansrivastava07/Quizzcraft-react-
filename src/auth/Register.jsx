@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { OtpInput } from "./Otpverification";
-import {SendOtp} from "./OtpSender";
+import { useAuth } from "../contexts/AuthContext";
+import { userAPI } from "../utils/api";
 import {
   faEnvelope,
   faLock,
@@ -11,21 +12,96 @@ import {
   faPhone,
   faUnlock,
 } from "@fortawesome/free-solid-svg-icons";
-import { use } from "react";
+
 export const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [OtpVerified, setOtpVerified] = useState(false);
-  const [Otp, setOtp] = useState(null);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+
+  const validatePassword = (password, confirmPassword) => {
+    if (password.length < 8) return "Password must be at least 8 characters long";
+    if (password !== confirmPassword) return "Passwords do not match";
+    return null;
+  };
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    // Validate form
+    if (!formData.username || !formData.email || !formData.password) {
+      setError("All fields are required");
+      setLoading(false);
+      return;
+    }
+
+    const passwordError = validatePassword(formData.password, formData.confirmPassword);
+    if (passwordError) {
+      setError(passwordError);
+      setLoading(false);
+      return;
+    }
+
+    // Add validation for required fields
+    if (!formData.username || !formData.email || !formData.password) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Sending registration data:", {
+        username: formData.username,
+        email: formData.email,
+        password: "***hidden***"
+      });
+
+      // Register user
+      const response = await register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (response.success) {
+        console.log(response);
+        setUserId(response.data.user._id);
+        // Request verification email
+        await userAPI.requestVerificationMail(response.data.user._id);
+        setShowOtpInput(true);
+      } else {
+        console.log(response);
+        setError(response.message || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      setError("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="grid-cols-subgrid content-center">
-        {!Otp && (
+        {!showOtpInput && (
           <>
-            <h1 className="text-4xl font-bold text-center mb-10 text-[#333333]">
+            <h1 className="text-4xl font-bold text-center mb-10 text-[#333333] dark:text-white">
               User Register
             </h1>
             <form action="" method="post" className="w-[60%] place-self-center">
-              <div className="h-full w-full flex flex-col">
+              <div className="h-full w-full flex flex-col text-black">
                 <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
                   <FontAwesomeIcon
                     icon={faUser}
@@ -37,6 +113,8 @@ export const Register = () => {
                     name="name"
                     className="outline-none "
                     placeholder="Name"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   />
                 </div>
                 <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
@@ -50,9 +128,11 @@ export const Register = () => {
                     name="userId"
                     className="outline-none "
                     placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
-                <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
+                {/* <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
                   <FontAwesomeIcon
                     icon={faPhone}
                     className="pr-3 text-[#1e3050]"
@@ -63,8 +143,10 @@ export const Register = () => {
                     name="number"
                     className="outline-none appearance-none"
                     placeholder="Number"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
-                </div>
+                </div> */}
                 <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
                   <FontAwesomeIcon
                     icon={faLock}
@@ -72,10 +154,12 @@ export const Register = () => {
                   />
                   <input
                     type="password"
-                    id="set=password"
+                    id="set-password"
                     name="set-password"
                     className="outline-none"
                     placeholder="Set Password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
                 </div>
                 <div className="py-3 px-5 outline-none border-gray-300 border-1 rounded-full bg-[#e6e6e6] mb-5">
@@ -89,35 +173,34 @@ export const Register = () => {
                     name="confirm-password"
                     className="outline-none"
                     placeholder="Confirm Password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                   />
                 </div>
                 {/* <label htmlFor="password">Password </label> */}
               </div>
+              {error && (
+                <div className="text-red-500 text-sm text-center mb-3">
+                  {error}
+                </div>
+              )}
               <button
                 type="submit"
-                className="w-full bg-green-600 py-3 px-5 outline-none rounded-full my-5 text-white font-bold cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if(ValidatePassword(document.getElementById("set-password").value,document.getElementById("confirm-password").value))
-                    SendOtp(setOtp,document.getElementById("userId").value);
-                  else {
-                    alert("Recheck Password");
-                    document.getElementById("set-password").value = "";
-                    document.getElementById("confirm-password").value = "";
-                  }
-                }}
+                className="w-full bg-green-600 py-3 px-5 outline-none rounded-full my-5 text-white font-bold cursor-pointer disabled:opacity-50"
+                disabled={loading}
+                onClick={handleRegister}
               >
-                REGISTER
+                {loading ? "REGISTERING..." : "REGISTER"}
               </button>
             </form>
           </>
         )}
-        {Otp && !OtpVerified && (
-          <OtpInput CorrectOtp={Otp} setotpVerified={setOtpVerified} />
+        {showOtpInput && !OtpVerified && (
+          <OtpInput userId={userId} setotpVerified={setOtpVerified} />
         )}
-        {Otp && OtpVerified && <Navigate to="/auth/login" />}
+        {showOtpInput && OtpVerified && <Navigate to="/auth/login" />}
       </div>
-      {!Otp && (
+      {!showOtpInput && (
         <div
           className="text-center cursor-pointer"
           onClick={() => navigate("/auth/login")}
@@ -129,8 +212,3 @@ export const Register = () => {
     </>
   );
 };
-function ValidatePassword(password,confirmPassword) {
-  if(password.length < 8) return false;
-  if(password === confirmPassword) return true;
-  else return false;
-}
