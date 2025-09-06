@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
+import { type } from "os";
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
@@ -11,6 +12,7 @@ const userSchema = new mongoose.Schema({
     profilePicture: { type: String, default: "" },
     mobileNo: { type: String, unique: true, sparse: true },
     address: { type: String, default: "" },
+    dateOfBirth :{type: Date, default: null},
     averageScore: { type: Number, default: 0 },
     verificationId : {type: Number},
     verificationIdExpiry : {type: Date},
