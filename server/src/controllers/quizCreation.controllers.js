@@ -111,26 +111,37 @@ const quizCreation = asyncHandler(async (req, res, next) => {
         required: ["quiz"]
     };
     const prompt = `
-    Generate a quiz based on the provided content.
-    User's specific instructions: ${userPrompt}
-    
-    General Instructions:
-    - Create exactly 10 multiple-choice questions (MCQs).
-    - Ensure all questions and answers are directly answerable from the provided content.
-    - For each MCQ, provide 4 distinct answer options.
-    - The overall quiz should have a relevant title.
-    - Each question must have a concise explanation for the correct answer.
-    - Output the quiz as a single JSON object. The root object must have a "quiz" key.
-    - The "quiz" object must contain a "title" and a "questions" array.
-    - Each object in the "questions" array must follow this exact structure:
-      {
-        "question": "The full question text.",
-        "options": ["Option A", "Option B", "Option C", "Option D"],
-        "answer": "The string of the correct option.",
-        "explanation": "A brief explanation of why this is the correct answer."
-      }
-    - Do not include any introductory or concluding remarks—only output the JSON object.
-    `;
+    You are an expert quiz creator. Your task is to generate a high-quality quiz based on the provided content (which can include text, images, and video transcripts).
+
+    **User's specific instructions:** ${userPrompt}
+
+    **General Instructions:**
+
+    1.  **Content is King:** Base all questions *exclusively* on the provided content. Do not ask questions about the file names, metadata, or any information not present in the content itself. The quiz should test understanding of the subject matter within the files.
+
+    2.  **Question Quality:**
+        *   Generate exactly 10 multiple-choice questions (MCQs).
+        *   Questions should be clear, concise, and unambiguous.
+        *   Avoid vague or trivial questions. Focus on key concepts, facts, and relationships presented in the content.
+        *   For each MCQ, provide 4 distinct answer options. The incorrect options (distractors) should be plausible but clearly wrong based on the provided content.
+
+    3.  **Quiz Structure:**
+        *   The overall quiz must have a relevant and descriptive "title".
+        *   Each question must have a concise "explanation" for why the correct answer is correct, referencing the information in the provided content.
+
+    4.  **Output Format (Strict):**
+        *   Output a single JSON object.
+        *   The root object must have a "quiz" key.
+        *   The "quiz" object must contain a "title" (string) and a "questions" (array) property.
+        *   Each object in the "questions" array must adhere to the following structure precisely:
+          {
+            "question": "The full question text.",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "answer": 0, // The 0-based index of the correct answer in the "options" array.
+            "explanation": "A brief explanation of why this is the correct answer."
+          }
+        *   Do not include any introductory or concluding remarks, code block formatting (like "json"), or any text outside of the single JSON object.
+    `
     const countTokensResponse = await ai.models.countTokens({
         model: "gemini-2.5-flash",
         contents: createUserContent([...fileParts, prompt]),
@@ -258,6 +269,12 @@ const updateQuiz = asyncHandler(async (req, res, next) => {
     return res.status(200).json(new ApiResponse(200, "Quiz updated successfully.", { quiz: savedQuiz }));
 })
 
+const getAllQuizById = asyncHandler(async (req, res, next) => {
+    const userId = req.user._id;
+    const quizzes = await Quiz.find({ creatorId: userId }).populate("quizId", "title").sort({ createdAt: -1 });
+    return res.status(200).json(new ApiResponse(200, "Quizzes fetched successfully.", { quizzes }));            
+})
+
 const deleteQuiz = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user._id;
@@ -285,5 +302,6 @@ const deleteQuiz = asyncHandler(async (req, res, next) => {
 export { quizCreation,
     getQuiz,
     updateQuiz,
-    deleteQuiz
+    deleteQuiz,
+    getAllQuizById
  };
