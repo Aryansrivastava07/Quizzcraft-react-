@@ -16,8 +16,10 @@ app.use(cookieParser());
 
 import quizCreation from './routes/quiz.routes.js';
 import user from './routes/user.routes.js';
+import attempt from './routes/attempt.routes.js';
 
 app.use('/api/v1/user',user);
 app.use('/api/v1/quiz',quizCreation);
+app.use('/api/v1/attempt',attempt);
 
 export { app };

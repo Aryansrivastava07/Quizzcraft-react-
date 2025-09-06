@@ -208,25 +208,82 @@ const getQuiz = asyncHandler(async (req, res, next) => {
 })
 
 const updateQuiz = asyncHandler(async (req, res, next) => {
-    const { id } = req.body;
-    const  updatedQuiz  = JSON.parse(req.body.updatedQuiz);
+    const { id, updatedQuiz: rawUpdatedQuiz } = req.body;
     const userId = req.user._id;
-    console.log(updatedQuiz.title);
-    const quiz = await Quiz.findById(id);
-    if(quiz.creatorId.toString() !== userId.toString()){
-        throw new ApiError(403, "You are not authorized to update this quiz.");
+
+    if (!id || !mongoose.isValidObjectId(id)) {
+        throw new ApiError(400, "A valid quiz ID is required.");
     }
-    
+
+    if (!rawUpdatedQuiz) {
+        throw new ApiError(400, "Updated quiz data is required.");
+    }
+
+    let updatedQuiz;
+    if (typeof rawUpdatedQuiz === 'string') {
+        try {
+            updatedQuiz = JSON.parse(rawUpdatedQuiz);
+        } catch (error) {
+            throw new ApiError(400, "Invalid JSON format for updatedQuiz.");
+        }
+    } else {
+        updatedQuiz = rawUpdatedQuiz;
+    }
+
+    // The incoming `_id` for subdocuments might be in an EJSON-like format
+    // like `{ $oid: '...' }`, which Mongoose's ObjectId caster doesn't
+    // handle directly. This preprocesses the `_id`s into plain strings.
+    if (updatedQuiz.questions && Array.isArray(updatedQuiz.questions)) {
+        for (const question of updatedQuiz.questions) {
+            if (question._id != null && typeof question._id === 'object' && question._id.$oid != null) {
+                question._id = question._id.$oid;
+            }
+        }
+    }
+
+    const quiz = await Quiz.findById(id);
+
     if (!quiz) {
         throw new ApiError(404, "Quiz not found.");
     }
+
+    if (quiz.creatorId.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not authorized to update this quiz.");
+    }
+
     quiz.title = updatedQuiz.title;
     quiz.questions = updatedQuiz.questions;
-    await quiz.save();
+    const savedQuiz = await quiz.save();
 
+    return res.status(200).json(new ApiResponse(200, "Quiz updated successfully.", { quiz: savedQuiz }));
 })
+
+const deleteQuiz = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    if (!id || !mongoose.isValidObjectId(id)) {
+        throw new ApiError(400, "A valid quiz ID is required.");
+    }
+
+    const quiz = await Quiz.findById(id);
+
+    if (!quiz) {
+        throw new ApiError(404, "Quiz not found.");
+    }
+
+    if (quiz.creatorId.toString() !== userId.toString()) {
+        throw new ApiError(403, "You are not authorized to delete this quiz.");
+    }
+
+    await quiz.deleteOne();
+
+    return res.status(200).json(new ApiResponse(200, "Quiz deleted successfully.", {}));
+});
+
 
 export { quizCreation,
     getQuiz,
-    updateQuiz
+    updateQuiz,
+    deleteQuiz
  };
