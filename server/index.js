@@ -3,7 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-// const testjson = require("../src/dump/test2.json"); // Import test JSON for debugging
+const testjson = require("../src/dump/test2.json"); // Import test JSON for debugging
 
 const app = express();
 const port = 5000;
@@ -19,8 +19,32 @@ app.use(express.json()); // For parsing JSON bodies if needed
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" }); // Or gemini-1.5-pro for more complex tasks
 
-let answerKeys = { // Global variable to store answer keys
+let answerKeys = {
+  // Global variable to store answer keys
 }; // Global variable to store answer keys
+app.post("/send-otp", async (req, res) => {
+  console.log("OTP sent");
+  return res.status(200).json({ message: "161521" });
+});
+
+
+app.post("/generate-quiz", upload.any(), async (req, res) => {
+  console.log("Files received:");
+  //   const fileSummary = req.files.map(file => ({
+  //   fieldname: file.fieldname,
+  //   originalname: file.originalname,
+  //   mimetype: file.mimetype,
+  //   size: file.size,
+  // }));
+
+  // res.json({
+  //   message: "Received everything!",
+  //   fields: req.body,
+  //   files: fileSummary,
+  // });
+  answerKeys["quiz-1752351409162"] = [1, 1, 2, 2, 1, 1, 1, 2, 1, 2]; // Merge with existing answer keys
+  return res.json({ data: testjson, answerKey: answerKeys["quiz-1752351409162"] }); // Return the test JSON directly for debugging
+});
 
 app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
   if (!req.file) {
@@ -31,11 +55,11 @@ app.post("/upload-pdf", upload.single("pdf"), async (req, res) => {
     return res.status(400).json({ message: "Only PDF files are allowed." });
   }
   // If you want to use the test JSON for debugging, uncomment the line below
-    // Store the answer key in the global variable
-    // answerKeys['quiz-1752351409162'] = [1, 1, 2, 2, 1, 1, 1, 2, 1, 2]; // Merge with existing answer keys
+  // Store the answer key in the global variable
+  // answerKeys['quiz-1752351409162'] = [1, 1, 2, 2, 1, 1, 1, 2, 1, 2]; // Merge with existing answer keys
   // return res.json({ data: testjson }); // Return the test JSON directly for debugging
 
-console.log("Pdf file received:", req.file.originalname);
+  console.log("Pdf file received:", req.file.originalname);
   try {
     const pdfBuffer = req.file.buffer;
 
@@ -87,7 +111,7 @@ console.log("Pdf file received:", req.file.originalname);
     // --- END OF CORRECTION ---
 
     // Attempt to parse the JSON string
-    let dataToSend = {quizId:"", quiz: []};
+    let dataToSend = { quizId: "", quiz: [] };
     let quiz = [];
     const quizId = `quiz-${Date.now()}`;
     dataToSend.quizId = quizId;
@@ -97,19 +121,19 @@ console.log("Pdf file received:", req.file.originalname);
     } catch (parseError) {
       console.error("Failed to parse Gemini response as JSON:", parseError);
       console.error(
-      "Raw Gemini Response (after cleaning attempt):",
-      cleanedResponseText
+        "Raw Gemini Response (after cleaning attempt):",
+        cleanedResponseText
       ); // Log cleaned text for debugging
       console.error("Original Gemini Response:", responseText); // Also log original for comparison
       return res.status(500).json({
-      message:
-        "Could not parse quiz from Gemini response. Check console for raw response and parsing error.",
-      rawResponseSnippet: responseText.substring(0, 200) + "...", // Provide a snippet in the client error
+        message:
+          "Could not parse quiz from Gemini response. Check console for raw response and parsing error.",
+        rawResponseSnippet: responseText.substring(0, 200) + "...", // Provide a snippet in the client error
       });
     }
     // Store the asnwer key with Quiz ID in another array
     const answerKey = quiz.map((q) => ({
-      correct_answer: q.correct_answer
+      correct_answer: q.correct_answer,
     }));
     // console.log("Answer Key:", answerKey);
     // Store the answer key in the global variable
@@ -122,7 +146,7 @@ console.log("Pdf file received:", req.file.originalname);
     dataToSend.quiz = quiz;
     console.log("Quiz Data:", dataToSend.quiz);
     console.log("Answer Key:", answerKey);
-    res.json({ data:dataToSend});
+    res.json({ data: dataToSend });
   } catch (error) {
     console.error("Error in /generate-quiz:", error);
     res
@@ -154,7 +178,6 @@ app.get("/answer-key", (req, res) => {
   } else {
     res.status(404).json({ error: "Quiz ID not found" });
   }
-
 });
 
 app.listen(port, () => {

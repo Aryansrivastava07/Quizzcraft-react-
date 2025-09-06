@@ -1,18 +1,25 @@
-import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState, useEffect, use } from "react";
 import { handleFileUpload } from "./utils/HandleFile";
-import { handleGenerate } from "./utils/GenerateQuiz";
-import {
-  faFilePdf,
-  faTerminal,
-  faVideo,
-  faArrowLeft,
-  faArrowRight,
-} from "@fortawesome/free-solid-svg-icons";
+import { Input } from "./Components/QuizInput";
+import { Chat } from "./Components/ChatBubble";
+import { useQuiz } from "./Components/QuizContext";
+import { useChatPresets } from "./Components/ChatPresets";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const MakeQuiz = () => {
+  const navigate = useNavigate();
+  const data = useLocation();
+  const {
+    quizData,
+    setQuizData,
+    anskey,
+    setAnskey,
+    uploadedFiles,
+    setUploadedFiles,
+    quizId,
+    setQuizId,
+  } = useQuiz();
   const [pdfs, setPdfs] = useState([]);
-  const [selectedFiles, setSelectedFiles] = useState([]);
   const [chatMessages, setChatMessages] = useState([
     { text: "Welcome to the quiz creator!", content: null },
     {
@@ -24,19 +31,33 @@ export const MakeQuiz = () => {
       ),
     },
   ]);
+  const presets = useChatPresets(setChatMessages);
   useEffect(() => {
-    if (selectedFiles.length > 0) {
-      handleFileUpload({fileUploaded:selectedFiles[selectedFiles.length - 1], setPdfs, setChatMessages});
+    const chatContainer = document.querySelector(".overflow-y-auto");
+    if (chatContainer) {
+      chatContainer.scrollTo({
+        top: chatContainer.scrollHeight,
+        behavior: "smooth",
+      });
     }
-  }, [selectedFiles]);
+  }, [chatMessages]);
 
-
+  useEffect(() => {
+    if (uploadedFiles.pdf.length > 0) {
+      // console.log(uploadedFiles);
+      handleFileUpload({
+        fileUploaded: uploadedFiles.pdf[uploadedFiles.pdf.length - 1],
+        setPdfs,
+        setChatMessages,
+      });
+    }
+  }, [uploadedFiles.pdf.length]);
 
   return (
     <div className="h-[90vh] grid grid-cols-[1fr_4fr] transition-all duration-150 bg-gradient-to-b from-slate-100 to-slate-300 dark:from-gray-900 dark:to-gray-950">
       <div className="shadow-2xl"></div>
       <div className="h-[90vh] shadow-2xl grid grid-rows-[1fr_auto] overflow-hidden">
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto scroll-auto transition-all duration-75">
           {chatMessages.map((msg, index) => (
             <Chat key={index} mes={msg.text}>
               {msg.content}
@@ -44,85 +65,49 @@ export const MakeQuiz = () => {
           ))}
         </div>
         <div className="self-end">
-          <Input setChatMessages={setChatMessages} setSelectedFiles={setSelectedFiles} pdfs={pdfs} />
+          {!quizData && <Input setChatMessages={setChatMessages} pdfs={pdfs} />}
+          {quizData && (
+            <div className="flex justify-around mt-4">
+              <button
+                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                onClick={() => {
+                  showQuestion({
+                    setChatMessages,
+                    presets,
+                  });
+                }}
+              >
+                View Quiz
+              </button>
+              <button
+                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
+                onClick={() => {
+                  const question = quizData.map((q) => q.question);
+                  const options = quizData.map((q) => q.options);
+                  console.log(quizData);
+                  // console.log(question,options,quizData[0].quizId);
+                  navigate("/QuizPlatform", {
+                    state: {
+                      quizId: quizId,
+                      Questions: question,
+                      Options: options,
+                    },
+                  });
+                }}
+              >
+                Attempt Quiz
+              </button>
+              <button className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                Share Quiz
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-const Chat = ({ mes, children }) => {
-  return (
-    <div className="text-gray-900 px-10 py-4 w-[70%] m-5 rounded-2xl bg-gradient-to-bl from-gray-400 to-gray-200 dark:from-gray-700 dark:to-gray-800 dark:text-white shadow-[0_-15px_25px_-10px_rgba(0,0,0,0.1)]">
-      <p>{mes}</p>
-      {children}
-    </div>
-  );
-};
-
-const Input = ({ setChatMessages, setSelectedFiles ,pdfs }) => {
-   const handleFileChange = (event) => {
-    const newFiles = Array.from(event.target.files);
-    setSelectedFiles((prevFiles) => {
-      const uniqueFiles = newFiles.filter(
-        (file) =>
-          !prevFiles.some(
-            (f) => f.name === file.name && f.lastModified === file.lastModified
-          )
-      );
-      return [...prevFiles, ...uniqueFiles];
-    });
-  };
-  const [files, setFiles] = useState([]);
-  return (
-    <form className="mx-10 my-2">
-      <div className="px-5 flex items-center gap-10">
-        <button
-          type="button"
-          className="border border-gray-900 dark:border-white p-3 rounded-4xl dark:text-white text-black"
-        >
-          Add Category
-        </button>
-        <button
-          type="button"
-          className="border border-gray-900 dark:border-white p-3 rounded-4xl dark:text-white text-black"
-          onClick={() => {
-            setChatMessages((prev) => [
-              ...prev,
-              {
-                text: "Upload your files below",
-                content: (
-                  <input type="file" multiple onChange={handleFileChange} />
-                ),
-              },
-            ]);
-          }}
-        >
-          Add Files
-        </button>
-        <button
-          type="button"
-          className="border border-gray-900 dark:border-white p-3 rounded-4xl dark:text-white text-black"
-        >
-          Add Category
-        </button>
-      </div>
-      <div className="p-5 flex items-center gap-5">
-        <input
-          type="text"
-          className="rounded-4xl w-full p-5 border-2 border-gray-600 dark:border-gray-200 text-gray-900 dark:text-white"
-        />
-        <button type="button">
-          <FontAwesomeIcon
-            icon={faArrowRight}
-            className="p-5 bg-gray-800 rounded-4xl text-white dark:text-gray-900 dark:bg-slate-300"
-            onClick={()=>{
-              console.log(pdfs[pdfs.length-1]);
-              handleGenerate({pdf : pdfs[pdfs.length-1]});
-            }}
-          />
-        </button>
-      </div>
-    </form>
-  );
+const showQuestion = ({ setChatMessages, presets }) => {
+  setChatMessages((prev) => [...prev, presets["QuizData"]]);
 };

@@ -23,7 +23,7 @@ export const Result = () => {
   const [result, setResult] = useState();
   const [correctAnswer, setCorrectAnswer] = useState();
   const [resultFetched, setresultFetched] = useState(false);
-
+// console.log(responses)
   // Fetch the answer key from the server
   const fetchAnswerKey = async () => {
     // send a request to the server to get the answer key with the quiz ID
@@ -39,7 +39,6 @@ export const Result = () => {
         throw new Error("Failed to fetch answer key", response.statusText);
       }
       const data = await response.json();
-      // console.log(data.answers);
       return data.answers;
     } catch (error) {
       console.error("Error fetching answer key:", error);
@@ -49,7 +48,7 @@ export const Result = () => {
   useEffect(() => {
     fetchAnswerKey()
       .then((data) => {
-        setCorrectAnswer(data.answerKey);
+        setCorrectAnswer(data);
         // console.log("Correct Answers:", data);
         // if (responses && data) {
         //   const score = responses.reduce((acc, response, idx) => {
@@ -61,10 +60,10 @@ export const Result = () => {
         // }
         // Calculate the score based on responses and correct answers
         // const score = fetchScore(data.answerKey);
-        const answers = data.answerKey;
+        const answers = data;
         let score = 0;
         for (let i = 0; i < responses.length; i++) {
-          if (responses[i] === (answers[i].correct_answer - '0')) {
+          if (responses[i] === answers[i]) {
             score++;
           }
         }
@@ -121,13 +120,13 @@ export const Result = () => {
         Review your Answeres
       </h1>
       <div className=" w-full m-auto justify-center items-center px-25 bg-[#f5f6f9] shadow-2xl">
-        <Review
+        {resultFetched && <Review
           questions={questions}
           options={options}
           correctAnswer={correctAnswer}
           responses={responses}
           quesTimer={quesTimer}
-        />
+        />}
       </div>
     </>
   );
@@ -172,6 +171,7 @@ const Review = ({
   }
   return (
     <>
+     {/* <div className="h-screen bg-amber-500 w-full"></div> */}
       {correctAnswer && (
         <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] p-10">
           {questions.map((ques, idx) => (
