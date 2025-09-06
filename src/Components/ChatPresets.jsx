@@ -103,7 +103,7 @@ export function useChatPresets(setChatMessages) {
       text: "Quiz Generated:",
       content: (
         <div className="quiz-display">
-          {quizData &&
+          {quizData && Array.isArray(quizData) &&
             quizData.map((question, qIndex) => (
               <div
                 key={qIndex}

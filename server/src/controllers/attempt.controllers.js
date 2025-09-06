@@ -5,6 +5,38 @@ import mongoose from "mongoose";
 import Quiz from "../models/quiz.model.js";
 import Attempt from "../models/attempt.model.js";
 
+const startQuiz = asyncHandler(async (req, res) => {
+    const { quizId } = req.params;
+    const userId = req.user._id;
+
+    if (!mongoose.isValidObjectId(quizId)) {
+        throw new ApiError(400, "Invalid Quiz ID.");
+    }
+
+    const quiz = await Quiz.findById(quizId).select("-questions.answer -questions.explanation");
+
+    if (!quiz) {
+        throw new ApiError(404, "Quiz not found.");
+    }
+
+    // Create a new attempt record
+    const attempt = new Attempt({
+        userId,
+        quizId,
+        score: 0,
+        answers: [],
+        timeTaken: 0,
+        status: 'in_progress'
+    });
+
+    await attempt.save();
+
+    return res.status(200).json(new ApiResponse(200, "Quiz started successfully.", { 
+        quiz,
+        attemptId: attempt._id 
+    }));
+});
+
 const getQuizForAttempt = asyncHandler(async (req, res) => {
     const { quizId } = req.params;
 
@@ -128,6 +160,7 @@ const reviewAttempt = asyncHandler(async (req, res) => {
 });
 
 export {
+    startQuiz,
     getQuizForAttempt,
     submitAttempt,
     getLeaderboard,
