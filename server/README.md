@@ -56,6 +56,8 @@ Base Path: `/api/v1/user`
 | POST   | `/login`                             | Log in a user.                                   |
 | POST   | `/logout/:id`                        | Log out a user.                                  |
 | POST   | `/refreshToken`                      | Refresh the access token for a user.             |
+| GET    | `/user`                              | Get the logged-in user's information.            |
+
 
 ### Quiz API
 
@@ -67,6 +69,9 @@ Base Path: `/api/v1/quiz`
 | GET    | `/getQuiz`         | Get a quiz by its ID.      |
 | POST   | `/updateQuiz`      | Update a quiz.             |
 | DELETE | `/deleteQuiz/:id`  | Delete a quiz.             |
+| GET    | `/getAllQuizById`  | Get all quizzes created by the user. |
+
+
 
 ### Attempt API
 
@@ -79,6 +84,7 @@ Base Path: `/api/v1/attempt`
 | GET    | `/leaderboard/:quizId` | Get the leaderboard for a quiz.                  |
 | GET    | `/history`             | Get the attempt history for the logged-in user.  |
 | GET    | `/review/:attemptId`   | Review a specific attempt with correct answers.  |
+
 
 ## Models
 

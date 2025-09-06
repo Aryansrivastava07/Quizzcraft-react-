@@ -191,6 +191,14 @@ const userRefreshToken = asyncHandler(async (req, res, next) => {
     }));
 })
 
+const getUser = asyncHandler(async (req, res, next) => {
+    const userId = req.user._id;
+    const user = await User.findById(userId).select("-password -refreshToken");
+    if (!user) {
+        throw new ApiError(404, "User not found.");
+    }
+    return res.status(200).json(new ApiResponse(200, "User fetched successfully.", { user }));
+})
     
 
 
@@ -201,5 +209,6 @@ export {
     userVerification,
     userLogin,
     userLogout,
-    userRefreshToken
+    userRefreshToken,
+    getUser
 };
