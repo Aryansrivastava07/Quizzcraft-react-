@@ -271,11 +271,7 @@ const updateQuiz = asyncHandler(async (req, res, next) => {
 
 const getAllQuizById = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
-<<<<<<< HEAD
     const quizzes = await Quiz.find({ creatorId: userId }).sort({ createdAt: -1 });
-=======
-    const quizzes = await Quiz.find({ creatorId: userId }).populate("_id", "title").sort({ createdAt: -1 });
->>>>>>> 79c86954efd1b1bf26576eae06a6052de5a4fbfa
     return res.status(200).json(new ApiResponse(200, "Quizzes fetched successfully.", { quizzes }));            
 })
 
