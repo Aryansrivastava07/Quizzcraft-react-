@@ -12,7 +12,7 @@ const connectDB = async () => {
 
   try {
     const connectionInstance = await mongoose.connect(
-      `${process.env.MONGODBURI}`
+      process.env.MONGODBURI
     );
 
     console.log(`MongoDB Connected: ${connectionInstance.connection.host}`);

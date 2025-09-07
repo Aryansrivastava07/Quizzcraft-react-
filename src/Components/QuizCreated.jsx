@@ -15,8 +15,8 @@ export const QuizCreated = ({ quizzesCreated }) => {
         const response = await quizAPI.getQuizById();
         console.log('Fetched quizzes:', response);
         
-        if (response.success && response.data) {
-          setQuizzes(response.data);
+        if (response.success && response.data && response.data.quizzes) {
+          setQuizzes(response.data.quizzes);
         } else {
           setQuizzes([]);
         }
@@ -67,7 +67,7 @@ export const QuizCreated = ({ quizzesCreated }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayQuizzes.map((quiz, index) => (
           <div
-            key={quiz.id}
+            key={quiz._id || quiz.id || index}
             className="group bg-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-all relative"
           >
             {/* Hover overlay */}
@@ -77,9 +77,9 @@ export const QuizCreated = ({ quizzesCreated }) => {
 
             {/* Quiz Card Content */}
             <div className="z-0 space-y-3">
-              <h3 className="text-xl font-bold text-[#354960]">{quiz.title || quiz.quizTitle || 'Untitled Quiz'}</h3>
+              <h3 className="text-xl font-bold text-[#354960]">{quiz.title || 'Untitled Quiz'}</h3>
               <p className="text-sm text-[#6b7280]">Category: {quiz.category || 'General'}</p>
-              <p className="text-sm text-[#6b7280]">Questions: {quiz.questions?.length || quiz.questionsCount || 0}</p>
+              <p className="text-sm text-[#6b7280]">Questions: {quiz.questions?.length || 0}</p>
               <div className="flex justify-between items-center text-sm text-[#4b5563]">
                 <span>
                   <FontAwesomeIcon icon={faList} className="mr-2" />
@@ -95,7 +95,7 @@ export const QuizCreated = ({ quizzesCreated }) => {
                   🏆 Badge: {quiz.badgeEarned || 'None'}
                 </span>
                 <span className="text-[#10b981] font-semibold">
-                  {quiz.visibility === "public" ? "🌍 Public" : "🔒 Private"}
+                  {quiz.type === "public" ? "🌍 Public" : "🔒 Private"}
                 </span>
               </div>
               <p className="text-xs text-gray-500 text-right">
