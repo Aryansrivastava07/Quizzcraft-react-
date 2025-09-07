@@ -11,7 +11,7 @@ export const AuthLayout = () => (
     <div className="min-h-[80vh] w-[80vw] m-auto bg-white rounded-2xl shadow-2xl p-5 grid grid-cols-2 bg-gradient-to-l dark:from-gray-950 dark:to-gray-900  from-[#5a5d685f] to-[#fefefe]">
       <div className="grid place-items-center">
         <img
-          src="../src/assets/logo2.png"
+          src="/logo2.png"
           alt=""
           className="w-[90%] aspect-auto"
         />
@@ -29,7 +29,7 @@ export const AuthLayout = () => (
 //       <div className="min-h-[80vh] w-[80vw] m-auto bg-white rounded-2xl shadow-2xl p-5 grid grid-cols-2 bg-gradient-to-t from-slate-900 to-slate-800 ">
 //         <div className="grid place-items-center">
 //           <img
-//             src="../src/assets/logo2.png"
+//             src="/logo2.png"
 //             alt=""
 //             className="w-[90%] aspect-auto"
 //           />

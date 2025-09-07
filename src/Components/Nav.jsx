@@ -28,7 +28,7 @@ export const Nav = ({ children }) => {
     <nav className="h-[10vh] fixed top-0 w-screen z-10 flex items-center justify-between pl-8 pr-8 backdrop-blur-2xl border-b-2 border-gray-200 bg-[#ffffffb2] backdrop:blur-md dark:bg-[#0f1726] dark:border-gray-800 transition-colors duration-500">
       <div className="flex items-center gap-5 text-gray-900 dark:text-white">
         <img
-          src="../src/assets/logo2.png"
+          src="/logo2.png"
           alt="logo"
           className="w-18"
           height="500"
