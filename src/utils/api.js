@@ -1,5 +1,5 @@
 // API configuration and utility functions
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
 // Get token from localStorage
 const getToken = () => localStorage.getItem('accessToken');
