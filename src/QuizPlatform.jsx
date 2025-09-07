@@ -387,7 +387,7 @@ export const QuizPlatform = () => {
       <nav className="w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center space-x-4">
-            <img src="src/assets/logo2.png" className="h-10 w-auto" alt="QuizCraft" />
+            <img src="/logo2.png" className="h-10 w-auto" alt="QuizCraft" />
             <span className="text-2xl font-bold text-gray-800 dark:text-white">QuizCraft</span>
             
             {/* Dark Mode Toggle */}

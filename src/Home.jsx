@@ -42,7 +42,7 @@ export const Home = () => {
       className="absolute flex flex-col items-center justify-end text-center pb-5"
     >
       <img
-        src="src/assets/op.png"
+        src="/op.png"
         alt="Wise owl mascot"
         className="w-auto h-[40vh] md:h-[55vh]"
       />

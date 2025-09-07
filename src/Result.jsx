@@ -214,8 +214,8 @@ const Review = ({ quizData, responses, timeSpent }) => {
     );
   }
   function title(index, question, userAnswer, isCorrect) {
-    const correctAnswerImg = "src/assets/correct.png";
-    const wrongAnswerImg = "src/assets/incorrect.png";
+    const correctAnswerImg = "/correct.png";
+    const wrongAnswerImg = "/incorrect.png";
 
     return (
       <div className="flex flex-col w-full">
@@ -257,7 +257,7 @@ const Review = ({ quizData, responses, timeSpent }) => {
             <div className="flex flex-col gap-5">
               <span className="flex flex-row">
                 <img
-                  src="src/assets/correct.png"
+                  src="/correct.png"
                   className="w-5 h-5 mr-1"
                   alt=""
                 />{" "}
@@ -268,7 +268,7 @@ const Review = ({ quizData, responses, timeSpent }) => {
               </span>
               <span className="flex flex-row">
                 <img
-                  src="src/assets/timetaken.png"
+                  src="/timetaken.png"
                   className="w-5 h-5 mr-1"
                   alt=""
                 />{" "}
