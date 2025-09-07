@@ -2,7 +2,7 @@ import User from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
-import {uploadOnCludinary} from "../utils/cloudinary.js";
+import {uploadOnCludinary, uploadBufferToCloudinary} from "../utils/cloudinary.js";
 import { getAccessToken, getRefreshToken } from "../utils/generateJWTtoken.js";
 import mongoose from "mongoose";
 import nodemailer from "nodemailer";
@@ -281,28 +281,33 @@ const changePassword = asyncHandler(async (req, res) => {
 
 const updateAvatar = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
-    const profilePicturePath = req.file?.path;
-    if (!profilePicturePath) {
+    
+    if (!req.file) {
         throw new ApiError(400, "No file uploaded.");
     }
 
-    const profilePicture = await uploadOnCludinary(profilePicturePath);
+    // For memory storage, use buffer instead of path
+    const profilePicture = await uploadBufferToCloudinary(req.file.buffer);
 
     if (!profilePicture) {
         throw new ApiError(500, "Failed to upload avatar image.");
     }
     
-    const user = await User.findByIdAndUpdate(userId,{
-        $set:{
-            profilePicture : profilePicture.url
+    // Get current user to delete old avatar if exists
+    const currentUser = await User.findById(userId);
+    
+    // Update user with new avatar URL
+    const user = await User.findByIdAndUpdate(userId, {
+        $set: {
+            profilePicture: profilePicture.url
         }
-    }).select("-password -refreshToken");
+    }, { new: true }).select("-password -refreshToken");
 
-    return res.status(200)
-    .json(new ApiResponse(200,"new profilepicture Uploaded",user)); 
-
+    return res.status(200).json(new ApiResponse(200, "Avatar uploaded successfully.", { 
+        user,
+        avatarUrl: profilePicture.url 
+    })); 
 })
-   
 
 const getAvatar = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;

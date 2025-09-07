@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "./Components/ThemeContext";
-import { quizzes } from "./dump/quizCreated.jsx" ;
-import { quizSub } from "./dump/quizAttempted.jsx" ;
 import { notifications } from "./dump/notifications.jsx" ;
 import { settings } from "./dump/settings.jsx" ;
 import {
@@ -44,8 +42,8 @@ export const Dashboard = () => {
       </div>
       <div className="h-full w-full bg-gray-50 dark:bg-gray-900 overflow-y-auto scrollbar transition-colors duration-300">
         {Isactive === "Profile" && <Profile />}
-        {Isactive === "Quiz Created" && <QuizCreated quizzesCreated={quizzes.quizzesCreated}/>}
-        {Isactive === "Quiz Attempted" && <QuizAttempted quizAttempted = {quizSub.quizAttempted}/>}
+        {Isactive === "Quiz Created" && <QuizCreated />}
+        {Isactive === "Quiz Attempted" && <QuizAttempted />}
         {Isactive === "Notification" && <Notifications notifications = {notifications}/>}
         {Isactive === "Settings" && <Settings settings = {setting} onChange={handleSettingChange}/>}
       </div>
