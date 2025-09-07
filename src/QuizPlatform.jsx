@@ -192,6 +192,18 @@ export const QuizPlatform = () => {
     }
   };
 
+  const handleNext = () => {
+    if (currentQuestionIndex < length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
   function handleOptionSelect(index) {
     return () => {
       const newOptions = [...Responses];
