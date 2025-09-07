@@ -1,7 +1,10 @@
+// Get API base URL from environment or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 export async function SendOtp(setOtp,mail) {
   try {
-    const res = await fetch("http://localhost:5000/send-otp", {
-      method: "POST", // <-- changed from GET to POST
+    const res = await fetch(`${API_BASE_URL}/send-otp`, {
+      method: "POST", 
       headers: {
         "Content-Type": "application/json",
       },

@@ -1,5 +1,8 @@
 import { PDFDocument } from "pdf-lib";
 
+// Get API base URL from environment or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+
 const DatatoSend = {
   pdf: [],
   image: [],
@@ -146,7 +149,7 @@ const fecthResponse = async (DatatoSend, setQuizData, setAnskey, setQuizId, setI
   try {
     // Step 1: Call the quizCreation endpoint. It returns the ID of the created quiz.
     const createQuizResponse = await fetch(
-      "http://localhost:5000/api/v1/quiz/quizCreation",
+      `${API_BASE_URL}/quiz/quizCreation`,
       {
         method: "POST",
         headers,
@@ -172,7 +175,7 @@ const fecthResponse = async (DatatoSend, setQuizData, setAnskey, setQuizId, setI
 
     // Step 2: Use the new quiz ID to fetch the full quiz data.
     const getQuizResponse = await fetch(
-      `http://localhost:5000/api/v1/quiz/getQuiz?id=${newQuizId}`,
+      `${API_BASE_URL}/quiz/getQuiz?id=${newQuizId}`,
       {
         method: "GET",
         headers,

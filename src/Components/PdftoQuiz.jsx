@@ -5,6 +5,9 @@ import { PDFDocument } from "pdf-lib";
 import { extractPdfPages } from "../utils/PdfUtils";
 import PdfPagesViewer from "./PdfPagesViewer";
 
+// Get API base URL from environment or fallback to localhost
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
 const createNewPDF = async (originalPdfBytes, selectedPages) => {
   const originalPdf = await PDFDocument.load(originalPdfBytes);
   const newPdf = await PDFDocument.create();
@@ -84,7 +87,7 @@ export function PdftoQuiz() {
       formData.append("pdf", blob, "selected_pages.pdf");
       // Make API call to your backend to handle the PDF blob
       setLoading(true);
-      fetch("http://localhost:5000/upload-pdf", {
+      fetch(`${API_BASE_URL}/upload-pdf`, {
         method: "POST",
         body: formData,
       })
