@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import {uploadOnCludinary} from "../utils/cloudinary.js";
 import { getAccessToken, getRefreshToken } from "../utils/generateJWTtoken.js";
 import mongoose from "mongoose";
+import nodemailer from "nodemailer";
 
 const userRegister = asyncHandler(async (req, res, next) => {
     const { username, email, password } = req.body;

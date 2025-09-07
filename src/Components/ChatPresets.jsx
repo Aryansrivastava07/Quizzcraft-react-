@@ -103,22 +103,32 @@ export function useChatPresets(setChatMessages) {
       text: "Quiz Generated:",
       content: (
         <div className="quiz-display">
-          {quizData && Array.isArray(quizData) &&
-            quizData.map((question, qIndex) => (
+          {quizData && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h2 className="text-xl font-bold text-blue-800 mb-2">{quizData.title}</h2>
+              <p className="text-sm text-blue-700 mb-2">{quizData.description}</p>
+              <div className="flex gap-4 text-xs text-blue-600">
+                <span>📝 {quizData.questions?.length || 0} questions</span>
+                <span>⏱️ {quizData.timeLimit || 'No time limit'}</span>
+                <span>🎯 {quizData.difficulty || 'Mixed difficulty'}</span>
+              </div>
+            </div>
+          )}
+          {quizData && quizData.questions && Array.isArray(quizData.questions) &&
+            quizData.questions.map((question, qIndex) => (
               <div
                 key={qIndex}
-                className="question-block border p-4 mb-4 rounded-lg shadow-md"
+                className="question-block border p-4 mb-4 rounded-lg shadow-md bg-white"
               >
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-lg font-semibold">
-                    Question {qIndex + 1}: {question.question}
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-lg font-semibold text-gray-800 flex-1 mr-4">
+                    <span className="text-blue-600">Q{qIndex + 1}:</span> {question.question}
                   </h3>
                   <button
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
+                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded text-sm"
                     onClick={() => {
-                      setQuizData((prevQuizData) =>
-                        prevQuizData.filter((_, i) => i !== qIndex)
-                      );
+                      const updatedQuestions = quizData.questions.filter((_, i) => i !== qIndex);
+                      setQuizData({...quizData, questions: updatedQuestions});
                       setAnskey((prevAnskey) =>
                         prevAnskey.filter((_, i) => i !== qIndex)
                       );
@@ -127,42 +137,61 @@ export function useChatPresets(setChatMessages) {
                     Delete
                   </button>
                 </div>
-                <ul className="list-disc pl-5">
-                  {question.options.map((option, oIndex) => (
+                <ul className="space-y-2">
+                  {question.options && question.options.map((option, oIndex) => (
                     <li
                       key={oIndex}
-                      className={`mb-1 ${
-                        oIndex === anskey[qIndex]
-                          ? "text-green-600 font-medium"
-                          : ""
+                      className={`p-2 rounded border ${
+                        question.answer === oIndex || 
+                        (typeof question.answer === 'string' && question.answer === option)
+                          ? "bg-green-100 border-green-300 text-green-800 font-medium"
+                          : "bg-gray-50 border-gray-200"
                       }`}
                     >
-                      {option}
+                      <span className="font-medium text-gray-600">{String.fromCharCode(65 + oIndex)}.</span> {option}
+                      {(question.answer === oIndex || 
+                        (typeof question.answer === 'string' && question.answer === option)) && 
+                        <span className="ml-2 text-green-600">✓ Correct</span>
+                      }
                     </li>
                   ))}
                 </ul>
+                {question.explanation && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Explanation:</strong> {question.explanation}
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
-          <button
-            className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => {
-              setChatMessages((prev) => [
-                ...prev,
-                {
-                  text: "Add a new question:",
-                  content: (
-                    <AddQuestionForm
-                      setChatMessages={setChatMessages}
-                      setQuizData={setQuizData}
-                      setAnskey={setAnskey}
-                    />
-                  ),
-                },
-              ]);
-            }}
-          >
-            Add New Question
-          </button>
+          {!quizData && (
+            <div className="text-center text-gray-500 py-8">
+              <p>No quiz data available. Please generate a quiz first.</p>
+            </div>
+          )}
+          {quizData && (
+            <button
+              className="ml-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => {
+                setChatMessages((prev) => [
+                  ...prev,
+                  {
+                    text: "Add a new question:",
+                    content: (
+                      <AddQuestionForm
+                        setChatMessages={setChatMessages}
+                        setQuizData={setQuizData}
+                        setAnskey={setAnskey}
+                      />
+                    ),
+                  },
+                ]);
+              }}
+            >
+              Add New Question
+            </button>
+          )}
         </div>
       ),
     },
@@ -196,8 +225,19 @@ const AddQuestionForm = ({ setChatMessages, setQuizData, setAnskey }) => {
       options: options.filter((option) => option.trim() !== ""), // Filter out empty options
     };
 
-    setQuizData((prevQuizData) => [...prevQuizData, newQuestion]);
-    setAnskey((prevAnskey) => [...prevAnskey, correctAnswer]);
+    setQuizData((prevQuizData) => {
+      if (!prevQuizData || !prevQuizData.questions) {
+        return { questions: [newQuestion] };
+      }
+      return {
+        ...prevQuizData,
+        questions: [...prevQuizData.questions, newQuestion]
+      };
+    });
+    setAnskey((prevAnskey) => {
+      if (!prevAnskey) return [correctAnswer];
+      return [...prevAnskey, correctAnswer];
+    });
 
     setChatMessages((prev) => [
       ...prev,
@@ -211,55 +251,85 @@ const AddQuestionForm = ({ setChatMessages, setQuizData, setAnskey }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-4 border rounded-lg shadow-md mt-4"
-    >
-      <div className="mb-4">
-        <label
-          className="block text-gray-700 text-sm font-bold mb-2"
-          htmlFor="question"
-        >
-          Question:
-        </label>
-        <input
-          type="text"
-          id="question"
-          className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          value={questionText}
-          onChange={(e) => setQuestionText(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 text-sm font-bold mb-2">
-          Options:
-        </label>
-        {options.map((option, index) => (
-          <div key={index} className="flex items-center mb-2">
-            <input
-              type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
-              value={option}
-              onChange={(e) => handleOptionChange(index, e.target.value)}
-              placeholder={`Option ${index + 1}`}
-            />
-            <input
-              type="radio"
-              name="correctAnswer"
-              checked={correctAnswer === index}
-              onChange={() => setCorrectAnswer(index)}
-            />
-            <label className="ml-1 text-gray-700 text-sm">Correct</label>
+    <div className="flex justify-start mb-4">
+      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl border border-gray-200">
+        <div className="flex items-center mb-4">
+          <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
+            <span className="text-white text-sm font-bold">+</span>
           </div>
-        ))}
+          <h3 className="text-lg font-semibold text-gray-800">Add New Question</h3>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Question Text
+            </label>
+            <textarea
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              rows="3"
+              value={questionText}
+              onChange={(e) => setQuestionText(e.target.value)}
+              placeholder="Enter your question here..."
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Answer Options
+            </label>
+            <div className="space-y-3">
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-3">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
+                      value={option}
+                      onChange={(e) => handleOptionChange(index, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                    />
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                      {String.fromCharCode(65 + index)}.
+                    </span>
+                  </div>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      name="correctAnswer"
+                      checked={correctAnswer === index}
+                      onChange={() => setCorrectAnswer(index)}
+                      className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-600">Correct</span>
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                setQuestionText("");
+                setOptions(["", "", "", ""]);
+                setCorrectAnswer(0);
+              }}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 font-medium shadow-md"
+            >
+              ✅ Add Question
+            </button>
+          </div>
+        </form>
       </div>
-      <button
-        type="submit"
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-      >
-        Add Question
-      </button>
-    </form>
+    </div>
   );
 };

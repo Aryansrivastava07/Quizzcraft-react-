@@ -1,10 +1,10 @@
 // 📁 Nav.js
-import { React } from "react";
+import { React, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "./ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
-import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faSun, faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 
 const TogledarkMode = (darkMode) => {
@@ -16,10 +16,12 @@ export const Nav = ({ children }) => {
   const { darkMode, setDarkMode } = useTheme();
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/auth/login');
+    setShowDropdown(false);
   };
 
   return (
@@ -53,19 +55,49 @@ export const Nav = ({ children }) => {
       </div>
       <menu className="relative flex items-center justify-between flex-wrap">
         {children}
-        {isLoggedIn && (
-          <div className="flex items-center gap-4 ml-4">
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Welcome, {user?.username}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+        {isLoggedIn ? (
+          <div className="relative ml-4">
+            <div 
+              className="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={() => setShowDropdown(!showDropdown)}
+              onMouseEnter={() => setShowDropdown(true)}
             >
-              Logout
-            </button>
+              <img
+                src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username || 'User'}&background=6366f1&color=fff`}
+                alt="Profile"
+                className="w-8 h-8 rounded-full border-2 border-indigo-200 dark:border-indigo-400"
+              />
+            </div>
+            
+            {showDropdown && (
+              <div 
+                className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-20"
+                onMouseLeave={() => setShowDropdown(false)}
+              >
+                <div className="py-2">
+                  <button
+                    onClick={() => {
+                      navigate('/Dashboard');
+                      setShowDropdown(false);
+                    }}
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faUser} />
+                    Dashboard
+                  </button>
+                  <hr className="my-1 border-gray-200 dark:border-gray-600" />
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <FontAwesomeIcon icon={faSignOutAlt} />
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        ) : null}
       </menu>
     </nav>
   );

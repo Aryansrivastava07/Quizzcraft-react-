@@ -168,7 +168,7 @@ export const userAPI = {
     formData.append('avatar', avatarFile);
     
     const token = getToken();
-    const response = await fetch(`${API_BASE_URL}/user/upload-avatar`, {
+    const response = await fetch(`${API_BASE_URL}/user/updateAvatar`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -179,7 +179,7 @@ export const userAPI = {
     if (response.status === 401) {
       await refreshAccessToken();
       const newToken = getToken();
-      const retryResponse = await fetch(`${API_BASE_URL}/user/upload-avatar`, {
+      const retryResponse = await fetch(`${API_BASE_URL}/user/updateAvatar`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${newToken}`,
@@ -193,7 +193,7 @@ export const userAPI = {
   },
 
   getAvatar: async () => {
-    const response = await apiRequest('/user/avatar', {
+    const response = await apiRequest('/user/getAvatar', {
       method: 'GET',
     });
     return response;

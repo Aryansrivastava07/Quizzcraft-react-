@@ -1,12 +1,13 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
-import { handleGenerate } from "../utils/GenerateQuiz";
+import { handleGenerate } from "../utils/GenerateQuiz.jsx";
 import { useChatPresets } from "./ChatPresets";
 import { useQuiz } from "./QuizContext";
 
 export const Input = ({
   setChatMessages,
   pdfs,
+  setIsLoading,
 }) => {
     const presets = useChatPresets();
     const {
@@ -59,7 +60,9 @@ export const Input = ({
                 uploadedFiles: DatatoSend,
                 setQuizData,
                 setAnskey,
-                setQuizId
+                setQuizId,
+                setIsLoading,
+                setChatMessages
               });
             }}
           />

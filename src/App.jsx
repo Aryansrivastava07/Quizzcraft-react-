@@ -8,7 +8,7 @@ import { QuizPlatform } from "./QuizPlatform.jsx";
 import { Result } from "./Result.jsx";
 import { ThemeProvider } from "./Components/ThemeContext";
 import { QuizProvider } from "./Components/QuizContext";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AuthRoutes from './auth/routes';
 
@@ -22,6 +22,8 @@ import {
 
 function AppContent() {
   const location = useLocation();
+  const { isLoggedIn } = useAuth();
+  
   // Hide Nav on /QuizPlatform
   const hideNav =
     location.pathname.toLowerCase() === "/quizplatform" ||
@@ -37,15 +39,10 @@ function AppContent() {
           <div className="mb-[10vh]">
             <Nav>
               {anchor("Home", "Home")}
-              {anchor("Make a Quiz", "MakeQuiz")}
+              {isLoggedIn && anchor("Make a Quiz", "MakeQuiz")}
               {anchor("Join a Quiz", "JoinQuiz")}
-              {anchor("Login", "auth/Login", true)}
+              {!isLoggedIn && anchor("Login", "auth/Login", true)}
             </Nav>
-          </div>
-        )}
-        {hideNav && (
-          <div className="mb-[10vh]">
-            <Nav />
           </div>
         )}
         <Routes>

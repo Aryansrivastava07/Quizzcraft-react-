@@ -11,8 +11,9 @@ import {
   PointElement,
   LineElement,
 } from "chart.js";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { useTheme } from "./ThemeContext";
 
 ChartJS.register(
   ArcElement,
@@ -27,28 +28,49 @@ ChartJS.register(
   LineElement
 );
 
-export const DoughnutChart = ({ result, answered, length }) => {
-  const data = {
-    labels: ["Correct", "Incorrect", "Unanswered"],
+export const DoughnutChart = ({ result, length }) => {
+  const { darkMode } = useTheme();
+  
+  const textColor = darkMode ? "#ffffff" : "#1f2937";
+
+  const data = useMemo(() => ({
+    labels: ["Correct", "Incorrect"],
     datasets: [
       {
-        label: "Answers",
-        data: [result, answered - result, 10 - answered],
+        label: "# of Votes",
+        data: [result, length - result],
         backgroundColor: [
-          "rgb(78, 139, 250)",
-          "rgb(92, 161, 255)",
+          "rgb(75, 192, 192)",
+          "rgb(255, 99, 132)",
+          "rgb(255, 205, 86)",
+          "rgb(201, 203, 207)",
+          "rgb(54, 162, 235)",
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 99, 132, 1)",
+          "rgba(255, 205, 86, 1)",
+          "rgba(201, 203, 207, 1)",
+          "rgba(54, 162, 235, 1)",
+        ],
+        hoverBackgroundColor: [
+          "rgb(200, 203, 229)",
+          "rgb(200, 203, 229)",
+          "rgb(200, 203, 229)",
+          "rgb(200, 203, 229)",
           "rgb(200, 203, 229)",
         ],
         borderWidth: 0,
       },
     ],
-  };
-  const options = {
+  }), [result, length]);
+
+  const options = useMemo(() => ({
     plugins: {
       legend: {
         position: "bottom",
         labels: {
-          color: "#041b43",
+          color: textColor,
           font: {
             size: 14,
             weight: "bold",
@@ -56,14 +78,12 @@ export const DoughnutChart = ({ result, answered, length }) => {
         },
       },
     },
-    rotation: 180, // Starts at 180 degrees (left)
-  };
+    rotation: 180,
+  }), [textColor]);
 
-  const percentage = useMemo(() => {
-    return `${Math.round((result / length) * 100)}%`;
-  }, [result]);
+  const percentage = useMemo(() => `${Math.round((result / length) * 100)}%`, [result, length]);
 
-  const centerTextPlugin = {
+  const centerTextPlugin = useMemo(() => ({
     id: "centerText",
     beforeDraw: (chart) => {
       if (!percentage) return;
@@ -77,13 +97,19 @@ export const DoughnutChart = ({ result, answered, length }) => {
       ctx.font = "bold 30px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+      ctx.fillStyle = textColor;
       ctx.fillText(percentage, centerX, centerY);
       ctx.restore();
     },
-  };
+  }), [percentage, textColor]);
 
   return (
-    <Doughnut data={data} options={options} plugins={[centerTextPlugin]} />
+    <Doughnut 
+      key={`doughnut-${darkMode}`}
+      data={data} 
+      options={options} 
+      plugins={[centerTextPlugin]} 
+    />
   );
 };
 
@@ -138,17 +164,27 @@ export const BarChart = ({ quesTimer }) => {
 };
 
 export const LineChart = ({ quesTimer }) => {
-  const options = {
+  const { darkMode } = useTheme();
+  
+  const textColor = darkMode ? "#ffffff" : "#1f2937";
+  const gridColor = darkMode ? "#ffffff" : "#e5e7eb";
+
+  const options = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
-      mode: "nearest", // or 'index', 'point', 'x', 'y'
-      intersect: false, // set to false to trigger hover even when not directly over a point
+      mode: "nearest",
+      intersect: false,
     },
-
     elements: {
       line: {
-        tension: .3, // Adjust this value for more or less curve
+        tension: .3,
+        borderColor: "#4e8bfa", // blue in both modes
+        backgroundColor: "#4e8bfa", // blue in both modes
+      },
+      point: {
+        backgroundColor: "#4e8bfa", // blue in both modes
+        borderColor: "#4e8bfa", // blue in both modes
       },
     },
     plugins: {
@@ -158,35 +194,46 @@ export const LineChart = ({ quesTimer }) => {
     },
     scales: {
       x: {
-        // title: {
-        //   display:true,
-        // },
-        grid: { display: true },
+        ticks: {
+          color: textColor,
+          font: {
+            weight: 'bold',
+          },
+        },
+        grid: { 
+          display: true,
+          color: gridColor,
+        },
       },
       y: {
         beginAtZero: true,
+        ticks: {
+          color: textColor,
+          font: {
+            weight: 'bold',
+          },
+        },
         grid: { display: false },
       },
     },
-  };
+  }), [textColor, gridColor]);
 
-  const data = {
+  const data = useMemo(() => ({
     labels: Array.from({ length: quesTimer.length }, (_, i) => i + 1),
     datasets: [
       {
         label: "Answers",
         data: Array.from(
           { length: quesTimer.length },
-          (_, i) => 30 - quesTimer[i++]
+          (_, i) =>  quesTimer[i++]
         ),
-        backgroundColor: [
-          "rgb(78, 139, 250)",
-          "rgb(92, 161, 255)",
-          "rgb(200, 203, 229)",
-          "rgb(78, 139, 250)",
-        ],
+        borderColor: "#4e8bfa", // blue in both modes
+        backgroundColor: "#4e8bfa", // blue in both modes
+        pointBackgroundColor: "#4e8bfa", // blue in both modes
+        pointBorderColor: "#4e8bfa", // blue in both modes
       },
     ],
-  };
-  return <Line options={options} data={data} />;
+  }), [quesTimer]);
+
+  return <Line key={`line-${darkMode}`} options={options} data={data} />;
 };

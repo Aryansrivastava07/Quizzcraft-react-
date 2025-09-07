@@ -20,20 +20,20 @@ const startQuiz = asyncHandler(async (req, res) => {
     }
 
     // Create a new attempt record
-    const attempt = new Attempt({
-        userId,
-        quizId,
-        score: 0,
-        answers: [],
-        timeTaken: 0,
-        status: 'in_progress'
-    });
+    // const attempt = new Attempt({
+    //     userId,
+    //     quizId,
+    //     score: 0,
+    //     answers: [],
+    //     timeTaken: 0,
+    //     status: 'in_progress'
+    // });
 
-    await attempt.save();
+    // await attempt.save();
 
     return res.status(200).json(new ApiResponse(200, "Quiz started successfully.", { 
         quiz,
-        attemptId: attempt._id 
+        // attemptId: attempt._id 
     }));
 });
 
@@ -55,7 +55,7 @@ const getQuizForAttempt = asyncHandler(async (req, res) => {
 
 const submitAttempt = asyncHandler(async (req, res) => {
     const { quizId } = req.params;
-    const { answers, timeTaken } = req.body;
+    const { answers, timeSpent} = req.body;
     const userId = req.user._id;
 
     if (!mongoose.isValidObjectId(quizId)) {
@@ -65,9 +65,8 @@ const submitAttempt = asyncHandler(async (req, res) => {
     if (!answers || !Array.isArray(answers)) {
         throw new ApiError(400, "Answers must be an array.");
     }
-
-    if (timeTaken === undefined || typeof timeTaken !== 'number') {
-        throw new ApiError(400, "timeTaken must be a number.");
+    if (!timeSpent || !Array.isArray(timeSpent)) {
+        throw new ApiError(400, "Timespent must be an array.");
     }
 
     const quiz = await Quiz.findById(quizId);
@@ -76,26 +75,37 @@ const submitAttempt = asyncHandler(async (req, res) => {
     }
 
     let score = 0;
+    let timeTaken = 0;
     quiz.questions.forEach((question, index) => {
         if (question.answer === answers[index]) {
             score++;
         }
+        timeTaken += timeSpent[index];
     });
+
+    // // Create responses array if not provided
+    // const detailedResponses = responses || answers.map((answer, index) => ({
+    //     questionIndex: index,
+    //     selectedOption: answer,
+    //     timeSpent: Math.floor(timeTaken / quiz.questions.length)
+    // }));
+
+    // Extract timeSpent array from responses
+    // const timeSpentArray = detailedResponses.map(response => response.timeSpent);
 
     const attempt = new Attempt({
         userId,
         quizId,
         score,
         answers,
-        timeTaken
+        timeTaken,
+        timeSpent,
     });
 
     await attempt.save();
 
     return res.status(201).json(new ApiResponse(201, "Quiz attempt submitted successfully.", {
-        attemptId: attempt._id,
-        score,
-        totalQuestions: quiz.questions.length,
+        attemptId: attempt._id
     }));
 });
 
@@ -148,15 +158,22 @@ const reviewAttempt = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Associated quiz not found.");
     }
 
-    const review = quiz.questions.map((question, index) => ({
-        question: question.question,
-        options: question.options,
-        userAnswer: attempt.answers[index],
-        correctAnswer: question.answer,
-        explanation: question.explanation
-    }));
+    console.log('Attempt data from DB:', attempt);
+    console.log('Attempt responses:', attempt.responses);
+    
+    const reviewData = {
+        quizId: attempt.quizId,
+        quiz: {
+            questions: quiz.questions
+        },
+        answers: attempt.answers,
+        timeSpent: attempt.timeSpent,
+        score: attempt.score,
+        totalQuestions: quiz.questions.length,
+        timeTaken: attempt.timeTaken
+    };
 
-    return res.status(200).json(new ApiResponse(200, "Attempt review fetched successfully.", { review }));
+    return res.status(200).json(new ApiResponse(200, "Attempt review fetched successfully.", reviewData));
 });
 
 export {

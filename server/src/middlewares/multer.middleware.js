@@ -26,29 +26,52 @@ const memoryStorage = multer.memoryStorage();
 
 // File filter function
 const fileFilter = (req, file, cb) => {
+    // Allow images, PDFs, videos, and text files
+    const allowedTypes = [
+        'image/',           // All image types
+        'application/pdf',  // PDF files
+        'video/',          // All video types
+        'text/',           // Text files
+        'application/msword',                    // .doc files
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx files
+        'application/vnd.ms-powerpoint',         // .ppt files
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation' // .pptx files
+    ];
+    
+    const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type) || file.mimetype === type);
+    
+    if (isAllowed) {
+        cb(null, true);
+    } else {
+        cb(new Error('File type not supported! Please upload images, PDFs, videos, or text files.'), false);
+    }
+};
+
+// Avatar-specific file filter (images only)
+const avatarFileFilter = (req, file, cb) => {
     // Check if file is an image
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
-        cb(new Error('Only image files are allowed!'), false);
+        cb(new Error('Only image files are allowed for avatars!'), false);
     }
 };
 
-// Create multer upload middleware for local storage
+// Create multer upload middleware for local storage (general files)
 export const upload = multer({ 
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 50 * 1024 * 1024 // 50MB limit for videos and large files
     }
 });
 
 // Avatar upload middleware using memory storage (for Cloudinary direct upload)
 export const avatarUpload = multer({
     storage: memoryStorage,
-    fileFilter: fileFilter,
+    fileFilter: avatarFileFilter,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 10 * 1024 * 1024 // 10MB limit for avatars
     }
 });
 

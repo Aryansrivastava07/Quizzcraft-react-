@@ -5,7 +5,8 @@ const attemptSchema = new mongoose.Schema({
     quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
     score: { type: Number, required: true },
     answers:{type: [Number], required: true},
-    timeTaken:{type: Number, required: true}
+    timeTaken:{type: Number, required: true},
+    timeSpent: { type: [Number], default: [] }, // Array of time spent per question
 },
 {
     timestamps: true

@@ -13,9 +13,11 @@ import {
 import { faIdBadge } from "@fortawesome/free-regular-svg-icons";
 import { userAPI, quizAPI, attemptAPI } from "../utils/api";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "./ThemeContext";
 
 export const Profile = () => {
   const { user } = useAuth();
+  const { darkMode } = useTheme();
   const [editable, seteditable] = useState(false);
   const [profileImg, setProfileImg] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -186,7 +188,7 @@ export const Profile = () => {
     return (
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
         <div className="flex justify-center items-center h-64">
-          <div className="text-xl text-gray-600">Loading profile...</div>
+          <div className="text-xl text-gray-600 dark:text-gray-300">Loading profile...</div>
         </div>
       </div>
     );
@@ -196,7 +198,7 @@ export const Profile = () => {
     return (
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
         <div className="flex justify-center items-center h-64">
-          <div className="text-xl text-red-600">{error}</div>
+          <div className="text-xl text-red-600 dark:text-red-400">{error}</div>
         </div>
       </div>
     );
@@ -205,13 +207,13 @@ export const Profile = () => {
   return (
     <>
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
-        <div className=" flex flex-row justify-end items-center text-[#354960] py-2">
+        <div className="flex flex-row justify-end items-center text-gray-600 dark:text-gray-300 py-2">
           <FontAwesomeIcon icon={faCalendarDays} />
           <p className="px-3">Joined {userData.joined}</p>
         </div>
-        <div className="relative h-full  grid px-2">
-          <hr className="w-full border-1 text-[#1e2939ad] rounded-full mx-auto" />
-          <div className="absolute p-2 w-fit bg-white justify-self-center top-0 -translate-y-25 rounded-full group ">
+        <div className="relative h-full grid px-2">
+          <hr className="w-full border-1 border-gray-300 dark:border-gray-600 rounded-full mx-auto" />
+          <div className="absolute p-2 w-fit bg-white dark:bg-gray-800 justify-self-center top-0 -translate-y-25 rounded-full group">
             <div className="hoverelement absolute h-50 w-50 rounded-full place-items-center bg-[#0909097d] backdrop-opacity-5 hidden group-hover:grid z-10">
               <form action="" method="post" className="h-full w-full rounded-full grid place-items-center">
                 <input
@@ -247,33 +249,33 @@ export const Profile = () => {
             </div>
           </div>
           <div className="mt-25 w-full flex flex-col justify-center items-center mb-5">
-            <h2 className="font-semibold text-3xl pt-2 text-center text-[#1e2939] w-60">
+            <h2 className="font-semibold text-3xl pt-2 text-center text-gray-800 dark:text-white w-60">
               {userData.name}
             </h2>
-            <h3 className="text-[#354960bd] text-sm text-center w-60">
+            <h3 className="text-gray-600 dark:text-gray-300 text-sm text-center w-60">
               {userData.email}
             </h3>
           </div>
         </div>
-        <div className="px-10 flex flex-row justify-around mb-2 border-b-2 pb-5 border-[#e5e7eb]">
-          <button className="p-4 bg-[#6169f9] text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center ">
+        <div className="px-10 flex flex-row justify-around mb-2 border-b-2 pb-5 border-gray-200 dark:border-gray-600">
+          <button className="p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
             <FontAwesomeIcon icon={faPenFancy} />
             <p>Quizzes Created</p>
             <p>{userData.quizCreated}</p>
           </button>
-          <button className="p-4 bg-[#61f973] text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center">
+          <button className="p-4 bg-green-600 dark:bg-green-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-green-700 dark:hover:bg-green-600 transition-colors">
             <FontAwesomeIcon icon={faStar} />
             <p>Average Score</p>
             <p>{userData.averageScore}%</p>
           </button>
-          <button className="p-4 bg-[#6169f9] text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center ">
+          <button className="p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
             <FontAwesomeIcon icon={faCircleCheck} />
             <p>Quizzes Submited</p>
             <p>{userData.quiSubmited}</p>
           </button>
         </div>
         <div className="p-2">
-          <h2 className="text-[#979da9]">Account Details</h2>
+          <h2 className="text-gray-500 dark:text-gray-400">Account Details</h2>
           <form
             onSubmit={handleSubmit}
             className="grid grid-cols-2 place-items-center gap-5 p-2"
@@ -343,18 +345,18 @@ export const Profile = () => {
                 }
                 ${
                   editable
-                    ? "bg-[#47464644] border-1 border-gray-700"
-                    : "bg-[#dfdadac5]"
-                }`}
+                    ? "bg-gray-100 dark:bg-gray-700 border-1 border-gray-300 dark:border-gray-600"
+                    : "bg-gray-200 dark:bg-gray-600"
+                } transition-colors duration-300`}
               >
                 <label
                   htmlFor={field.id}
-                  className="font-semibold justify-self-center"
+                  className="font-semibold justify-self-center text-gray-700 dark:text-gray-200"
                 >
                   {field.label}
                 </label>
                 <input
-                  className="p-5 w-full outline-none"
+                  className="p-5 w-full outline-none bg-transparent text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   type={field.type}
                   id={field.id}
                   name={field.name}
@@ -376,14 +378,14 @@ export const Profile = () => {
             >
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-500 border-2 border-gray-300 text-white font-semibold cursor-pointer rounded-xl flex flex-row gap-x-5 items-center  "
+                className="px-4 py-2 bg-green-500 dark:bg-green-600 border-2 border-gray-300 dark:border-gray-600 text-white font-semibold cursor-pointer rounded-xl flex flex-row gap-x-5 items-center hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
               >
                 Submit
               </button>
             </div>
             <div className="w-full col-start-2 flex justify-end px-5">
               <button
-                className={`px-4 py-2 border-2 border-gray-300 text-gray-600 cursor-pointer rounded-xl flex-row gap-x-5 items-center ${
+                className={`px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 cursor-pointer rounded-xl flex-row gap-x-5 items-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
                   !editable ? "flex" : "hidden"
                 } `}
                 type="button"

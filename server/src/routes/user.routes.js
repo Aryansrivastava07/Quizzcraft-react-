@@ -13,7 +13,7 @@ import {
     changePassword
 } from "../controllers/user.controllers.js";
 import  {authenticateUser}  from "../middlewares/authenticator.middleware.js";
-import { upload } from "../middlewares/multer.middleware.js";
+import { avatarUpload } from "../middlewares/multer.middleware.js";
 const router = Router();
 
 router.route('/register').post(userRegister);
@@ -24,7 +24,7 @@ router.route('/logout/:id').post(userLogout);
 router.route('/refreshToken').post(userRefreshToken);
 router.route('/user').get(authenticateUser,getUser);
 router.route('/updateProfile').post(authenticateUser, updateProfile);
-router.route('/updateAvatar').post(authenticateUser, upload.single('avatar'), updateAvatar);
+router.route('/updateAvatar').post(authenticateUser, avatarUpload.single('avatar'), updateAvatar);
 router.route('/getAvatar').get(authenticateUser, getAvatar);
 router.route('/changePassword').post(authenticateUser, changePassword);
 

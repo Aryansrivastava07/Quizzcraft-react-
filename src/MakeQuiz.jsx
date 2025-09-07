@@ -22,6 +22,7 @@ export const MakeQuiz = () => {
     setQuizId,
   } = useQuiz();
   const [pdfs, setPdfs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { text: "Welcome to the quiz creator!", content: null },
     {
@@ -72,39 +73,82 @@ export const MakeQuiz = () => {
           ))}
         </div>
         <div className="self-end">
-          {!quizData && <Input setChatMessages={setChatMessages} pdfs={pdfs} />}
-          {quizData && (
-            <div className="flex justify-around mt-4">
-              <button
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => {
-                  showQuestion({
-                    setChatMessages,
-                    presets,
-                  });
-                }}
-              >
-                View Quiz
-              </button>
-              <button
-                className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded"
-                onClick={() => {
-                  if (quizId) {
-                    navigate("/QuizPlatform", {
-                      state: {
-                        quizId: quizId,
-                      },
+          {!quizData && !isLoading && <Input setChatMessages={setChatMessages} pdfs={pdfs} setIsLoading={setIsLoading} />}
+          {isLoading && (
+            <div className="flex justify-center items-center p-6">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                  Generating Quiz...
+                </span>
+              </div>
+            </div>
+          )}
+          {quizData && !isLoading && (
+            <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex flex-wrap justify-center gap-3 mb-4">
+                <button
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  onClick={() => {
+                    showQuestion({
+                      setChatMessages,
+                      presets,
                     });
-                  } else {
-                    alert("No quiz ID available. Please create a quiz first.");
-                  }
-                }}
-              >
-                Attempt Quiz
-              </button>
-              <button className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                Share Quiz
-              </button>
+                  }}
+                >
+                  <span>📋</span>
+                  View Quiz
+                </button>
+                <button
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  onClick={() => {
+                    if (quizId) {
+                      navigate("/QuizPlatform", {
+                        state: {
+                          quizId: quizId,
+                        },
+                      });
+                    } else {
+                      alert("No quiz ID available. Please create a quiz first.");
+                    }
+                  }}
+                >
+                  <span>🎯</span>
+                  Attempt Quiz
+                </button>
+                <button 
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/QuizPlatform?id=${quizId}`);
+                    alert("Quiz link copied to clipboard!");
+                  }}
+                >
+                  <span>🔗</span>
+                  Share Quiz
+                </button>
+                <button 
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  onClick={() => {
+                    setQuizData(null);
+                    setQuizId(null);
+                    setAnskey([]);
+                    setChatMessages([
+                      { text: "Welcome to the quiz creator!", content: null },
+                      {
+                        text: "Need help? Visit our docs",
+                        content: (
+                          <a href="/docs" className="text-blue-600 underline">
+                            View Docs
+                          </a>
+                        ),
+                      },
+                    ]);
+                  }}
+                >
+                  <span>🆕</span>
+                  Create New Quiz
+                </button>
+              </div>
             </div>
           )}
         </div>
