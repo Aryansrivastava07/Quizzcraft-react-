@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
-import { type } from "os";
 
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
