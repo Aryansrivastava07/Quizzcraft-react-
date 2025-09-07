@@ -26,28 +26,22 @@ export const Nav = ({ children }) => {
       if (isLoggedIn && user) {
         try {
           const avatarResponse = await userAPI.getAvatar();
-          console.log('Navbar - Avatar response:', avatarResponse);
           if (avatarResponse.success && avatarResponse.data) {
             // Check for avatarUrl first, then fallback to profilePicture
             const rawAvatarUrl = avatarResponse.data.avatarUrl || avatarResponse.data.profilePicture;
-            console.log('Navbar - Raw avatar URL:', rawAvatarUrl);
             
             if (rawAvatarUrl) {
               const processedUrl = rawAvatarUrl.startsWith('http') 
                 ? rawAvatarUrl 
                 : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${rawAvatarUrl}`;
-              console.log('Navbar - Setting avatar URL:', processedUrl);
               setUserAvatar(processedUrl);
             } else {
-              console.log('Navbar - No avatar URL found, setting to null');
               setUserAvatar(null);
             }
           } else {
-            console.log('Navbar - Avatar response not successful, setting to null');
             setUserAvatar(null);
           }
         } catch (error) {
-          console.log('Navbar - Avatar fetch error:', error);
           setUserAvatar(null);
         }
       } else {

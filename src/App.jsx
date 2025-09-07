@@ -6,6 +6,7 @@ import { MakeQuiz } from "./MakeQuiz.jsx";
 import { MakeQuizver0 } from "./Components/MakeQuizver0.jsx";
 import { QuizPlatform } from "./QuizPlatform.jsx";
 import { Result } from "./Result.jsx";
+import JoinQuiz from "./JoinQuiz.jsx";
 import { ThemeProvider } from "./Components/ThemeContext";
 import { QuizProvider } from "./Components/QuizContext";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -89,6 +90,17 @@ function AppContent() {
                 </QuizProvider>
               </ProtectedRoute>
             }
+          />
+          <Route path="/JoinQuiz" element={<JoinQuiz />} />
+          <Route 
+            path="/attempt-quiz/:quizId" 
+            element={
+              <ProtectedRoute>
+                <QuizProvider>
+                  <QuizPlatform />
+                </QuizProvider>
+              </ProtectedRoute>
+            } 
           />
           <Route path="/MakeQuizver0" element={<MakeQuizver0 />} />
         </Routes>

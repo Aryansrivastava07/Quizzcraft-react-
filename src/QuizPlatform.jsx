@@ -32,8 +32,11 @@ export const QuizPlatform = () => {
   const isTabActive = useIsTabActive();
   const location = useLocation();
   const navigate = useNavigate();
-  const quizId = location.state?.quizId;
   const { darkMode, setDarkMode } = useTheme();
+  
+  // Get quiz ID from URL params or location state
+  const urlParams = new URLSearchParams(location.search);
+  const quizId = location.state?.quizId || urlParams.get('id') || location.pathname.split('/').pop();
   
   const [quizData, setQuizData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -110,42 +113,51 @@ export const QuizPlatform = () => {
 
   // Check authentication on component mount
   useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/auth/login");
-      return;
-    }
-    
-    if (!quizId) {
-      setError("No quiz ID provided");
-      setLoading(false);
-      return;
-    }
-    
-    loadQuizData();
-    
-    // Don't auto-enter fullscreen, let user click the prompt
-    // setTimeout(() => {
-    //   enterFullscreen();
-    // }, 1000);
-  }, [quizId, navigate]);
-
-  const loadQuizData = async () => {
-    try {
-      const response = await attemptAPI.startQuiz(quizId);
-      if (response.success) {
-        setQuizData(response.data.quiz);
-        setAttemptId(response.data.attemptId);
-        console.log('Quiz data loaded:', response.data.quiz);
-      } else {
-        setError(response.message || "Failed to load quiz");
+    const fetchQuizData = async () => {
+      if (!isAuthenticated()) {
+        navigate("/auth/login");
+        return;
       }
-    } catch (error) {
-      console.error("Error loading quiz:", error);
-      setError("Failed to load quiz. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+      
+      if (!quizId) {
+        setError("No quiz ID provided");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        
+        // Check if quiz data is passed from JoinQuiz component
+        if (location.state?.quiz && location.state?.fromJoin) {
+          // Use quiz data from JoinQuiz and start attempt
+          const attemptResponse = await attemptAPI.startQuiz(quizId);
+          if (attemptResponse.success) {
+            setAttemptId(attemptResponse.data.attemptId);
+            setQuizData(location.state.quiz);
+          } else {
+            throw new Error(attemptResponse.message || "Failed to start quiz");
+          }
+        } else {
+          // Fetch quiz data normally
+          const attemptResponse = await attemptAPI.startQuiz(quizId);
+          if (attemptResponse.success) {
+            setAttemptId(attemptResponse.data.attemptId);
+            setQuizData(attemptResponse.data.quiz);
+          } else {
+            throw new Error(attemptResponse.message || "Failed to start quiz");
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching quiz:", err);
+        setError(err.message || "Failed to load quiz");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuizData();
+  }, [quizId, location.state, navigate]);
 
   // Initialize timer when quiz data is loaded
   useEffect(() => {

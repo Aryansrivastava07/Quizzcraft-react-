@@ -183,12 +183,18 @@ const quizCreation = asyncHandler(async (req, res, next) => {
     },
   });
 
-  uploads.forEach((file) => fs.unlinkSync(file.path));
+  // Clean up uploaded files if any exist
+  if (uploads && uploads.length > 0) {
+    uploads.forEach((file) => fs.unlinkSync(file.path));
+  }
 
-  const deletePromises = geminiUploads.map((element) =>
-    ai.files.delete({ name: element.name })
-  );
-  await Promise.all(deletePromises);
+  // Clean up Gemini uploads if any exist
+  if (geminiUploads.length > 0) {
+    const deletePromises = geminiUploads.map((element) =>
+      ai.files.delete({ name: element.name })
+    );
+    await Promise.all(deletePromises);
+  }
 
   // Correctly access the generated text from the response
   const generatedText = response.text;
