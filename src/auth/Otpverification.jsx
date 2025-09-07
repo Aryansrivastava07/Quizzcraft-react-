@@ -118,7 +118,7 @@ export const OtpInput = ({ length = 4, userId, setotpVerified }) => {
               key={index}
               type="text"
               maxLength={1}
-              className={`w-12 h-12 text-center text-xl border rounded focus:outline-none focus:ring-2 transition-all duration-200 
+              className={`w-12 h-12 text-center text-xl border rounded focus:outline-none focus:ring-2 transition-all duration-200 text-black
                 ${otpsubmit ? (verified ? "bg-green-500 border-green-300 ": "bg-red-500 border-red-300") : "bg-gray-200 border-gray-600 "}`}
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}

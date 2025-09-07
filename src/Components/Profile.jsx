@@ -15,12 +15,12 @@ import { userAPI, quizAPI, attemptAPI } from "../utils/api";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "./ThemeContext";
 
-export const Profile = () => {
+export const Profile = ({ userData: propUserData, dashboardStats, loading: propLoading, error: propError, refreshUserData }) => {
   const { user } = useAuth();
   const { darkMode } = useTheme();
   const [editable, seteditable] = useState(false);
   const [profileImg, setProfileImg] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleImageUpload = async (e) => {
@@ -32,7 +32,6 @@ export const Profile = () => {
         
         // Upload to backend
         const response = await userAPI.uploadAvatar(file);
-        console.log('Avatar upload response:', response);
         
         if (response.success) {
           // Update the profile image URL from backend
@@ -41,7 +40,11 @@ export const Profile = () => {
             ? response.data.avatarUrl 
             : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${response.data.avatarUrl}`;
           setProfileImg(avatarUrl);
-          console.log('Avatar uploaded successfully');
+          
+          // Refresh dashboard data to update avatar across all components
+          if (refreshUserData) {
+            refreshUserData();
+          }
         } else {
           console.error('Avatar upload failed:', response.message);
           setError('Failed to upload avatar. Please try again.');
@@ -54,114 +57,40 @@ export const Profile = () => {
   };
 
   const [userData, setUserData] = useState({
-    name: "",
-    joined: "",
-    email: "",
-    number: "",
-    password: "",
-    quizCreated: 0,
-    quiSubmited: 0,
-    averageScore: 0,
-    address: "",
-    dob: "",
-    username: "",
+    name: propUserData?.name || "",
+    joined: propUserData?.joined || "",
+    email: propUserData?.email || "",
+    number: propUserData?.number || "",
+    password: propUserData?.password || "",
+    quizCreated: dashboardStats?.quizzesCreated || 0,
+    quiSubmited: dashboardStats?.quizzesAttempted || 0,
+    averageScore: dashboardStats?.averageScore || 0,
+    address: propUserData?.address || "",
+    dob: propUserData?.dob || "",
+    username: propUserData?.username || "",
   });
 
-  const [dashboardStats, setDashboardStats] = useState({
-    quizzesCreated: 0,
-    quizzesAttempted: 0,
-    averageScore: 0,
-  });
-
-  // Fetch user data and dashboard stats
+  // Update local state when props change
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch current user data
-        const userResponse = await userAPI.getCurrentUser();
-        console.log('User data response:', userResponse);
-        
-        // Fetch user avatar
-        let avatarResponse = null;
-        try {
-          avatarResponse = await userAPI.getAvatar();
-          console.log('Avatar response:', avatarResponse);
-        } catch (avatarError) {
-          console.log('Avatar fetch failed:', avatarError);
-          // Continue without avatar if fetch fails
-        }
-        
-        if (userResponse.success && userResponse.data) {
-          const user = userResponse.data.user || userResponse.data;
-          
-          // Set avatar if available
-          if (avatarResponse && avatarResponse.success && avatarResponse.data && avatarResponse.data.avatarUrl) {
-            // Check if it's a Cloudinary URL (full URL) or local path
-            const avatarUrl = avatarResponse.data.avatarUrl.startsWith('http') 
-              ? avatarResponse.data.avatarUrl 
-              : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${avatarResponse.data.avatarUrl}`;
-            setProfileImg(avatarUrl);
-          }
-          
-          // Fetch user's created quizzes
-          const quizzesResponse = await quizAPI.getQuizById();
-          console.log('Quizzes response:', quizzesResponse);
-          
-          // Fetch user's attempt history
-          const attemptsResponse = await attemptAPI.getAttemptHistory();
-          console.log('Attempts response:', attemptsResponse);
-          
-          const quizzesCreated = quizzesResponse.success ? (quizzesResponse.data?.length || 0) : 0;
-          const attempts = attemptsResponse.success ? (attemptsResponse.data || []) : [];
-          const quizzesAttempted = attempts.length;
-          
-          // Calculate average score
-          let averageScore = 0;
-          if (attempts.length > 0) {
-            const totalScore = attempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
-            averageScore = Math.round(totalScore / attempts.length);
-          }
-          
-          // Format join date
-          const joinDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
-          }) : 'Recently';
-          
-          setUserData({
-            name: user.fullName || user.name || user.username || '',
-            joined: joinDate,
-            email: user.email || '',
-            number: user.phone || user.phoneNumber || user.mobileNo || '',
-            password: '••••••••', // Don't show actual password
-            quizCreated: quizzesCreated,
-            quiSubmited: quizzesAttempted,
-            averageScore: averageScore,
-            address: user.address || '',
-            dob: user.dateOfBirth || user.dob || '',
-            username: user.username || '',
-          });
-          
-          setDashboardStats({
-            quizzesCreated,
-            quizzesAttempted,
-            averageScore,
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        setError('Failed to load user data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchUserData();
+    if (propUserData) {
+      setUserData({
+        name: propUserData.name || "",
+        joined: propUserData.joined || "",
+        email: propUserData.email || "",
+        number: propUserData.number || "",
+        password: propUserData.password || "",
+        quizCreated: dashboardStats?.quizzesCreated || 0,
+        quiSubmited: dashboardStats?.quizzesAttempted || 0,
+        averageScore: dashboardStats?.averageScore || 0,
+        address: propUserData.address || "",
+        dob: propUserData.dob || "",
+        username: propUserData.username || "",
+      });
+      
+      // Always update profile image state, even if null
+      setProfileImg(propUserData.avatarUrl || null);
     }
-  }, [user]);
+  }, [propUserData, dashboardStats]);
   // Handle form submission for profile updates
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -176,7 +105,11 @@ export const Profile = () => {
       const response = await userAPI.updateProfile(profileData);
       if (response.success) {
         seteditable(false);
-        console.log('Profile updated successfully');
+        
+        // Refresh dashboard data to update profile across all components
+        if (refreshUserData) {
+          refreshUserData();
+        }
       }
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -184,7 +117,7 @@ export const Profile = () => {
     }
   };
 
-  if (loading) {
+  if (propLoading) {
     return (
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
         <div className="flex justify-center items-center h-64">
@@ -194,6 +127,16 @@ export const Profile = () => {
     );
   }
 
+  if (propError) {
+    return (
+      <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
+        <div className="flex justify-center items-center h-64">
+          <div className="text-xl text-red-600 dark:text-red-400">{propError}</div>
+        </div>
+      </div>
+    );
+  }
+  
   if (error) {
     return (
       <div className="h-auto w-full flex flex-col content-center pt-20 px-5">

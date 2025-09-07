@@ -10,12 +10,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 export const ForgotPassword = () => {
-  const [OtpVerified, setOtpVerified] = useState(false);
-  const [Otp, setOtp] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [userId, setUserId] = useState(null);
   return (
     <>
       <div className="grid-cols-subgrid content-center">
-        {!Otp && (
+        {!otpSent && (
           <>
             <h1 className="text-4xl font-bold text-center mb-10 text-[#333333]">
               Recover Password
@@ -37,9 +38,13 @@ export const ForgotPassword = () => {
               <button
                 type="submit"
                 className="w-full bg-green-600 py-3 px-5 outline-none rounded-full my-5 text-white font-bold cursor-pointer"
-                onClick={(e) => {
+                onClick={async (e) => {
                   e.preventDefault();
-                  SendOtp(setOtp, document.getElementById("userId").value);
+                  const id = await SendOtp(
+                    setOtpSent,
+                    document.getElementById("userId").value
+                  );
+                  setUserId(id);
                 }}
               >
                 Send OTP
@@ -47,12 +52,12 @@ export const ForgotPassword = () => {
             </form>
           </>
         )}
-        {Otp && !OtpVerified && (
-          <OtpInput CorrectOtp={Otp} setotpVerified={setOtpVerified} />
+        {otpSent && !otpVerified && (
+          <OtpInput setotpVerified={setOtpVerified} userId={userId} />
         )}
-        {Otp && OtpVerified && <ResetPassword />}
+        {otpSent && otpVerified && <ResetPassword />}
       </div>
-      {!Otp && (
+      {!otpSent && (
         <div className="text-center cursor-pointer">
           <Link to="/auth/login" className="">
             Back to Login

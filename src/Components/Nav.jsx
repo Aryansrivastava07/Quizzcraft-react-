@@ -1,11 +1,12 @@
 // 📁 Nav.js
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useTheme } from "./ThemeContext";
 import { useAuth } from "../contexts/AuthContext";
-import { faMoon, faSun, faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { faMoon, faSun, faUser, faSignOutAlt, faUserTie } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
+import { userAPI } from "../utils/api";
 
 const TogledarkMode = (darkMode) => {
   document.body.classList.toggle("dark");
@@ -17,6 +18,45 @@ export const Nav = ({ children }) => {
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(null);
+
+  // Fetch user avatar when component mounts or user changes
+  useEffect(() => {
+    const fetchUserAvatar = async () => {
+      if (isLoggedIn && user) {
+        try {
+          const avatarResponse = await userAPI.getAvatar();
+          console.log('Navbar - Avatar response:', avatarResponse);
+          if (avatarResponse.success && avatarResponse.data) {
+            // Check for avatarUrl first, then fallback to profilePicture
+            const rawAvatarUrl = avatarResponse.data.avatarUrl || avatarResponse.data.profilePicture;
+            console.log('Navbar - Raw avatar URL:', rawAvatarUrl);
+            
+            if (rawAvatarUrl) {
+              const processedUrl = rawAvatarUrl.startsWith('http') 
+                ? rawAvatarUrl 
+                : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${rawAvatarUrl}`;
+              console.log('Navbar - Setting avatar URL:', processedUrl);
+              setUserAvatar(processedUrl);
+            } else {
+              console.log('Navbar - No avatar URL found, setting to null');
+              setUserAvatar(null);
+            }
+          } else {
+            console.log('Navbar - Avatar response not successful, setting to null');
+            setUserAvatar(null);
+          }
+        } catch (error) {
+          console.log('Navbar - Avatar fetch error:', error);
+          setUserAvatar(null);
+        }
+      } else {
+        setUserAvatar(null);
+      }
+    };
+
+    fetchUserAvatar();
+  }, [isLoggedIn, user]);
 
   const handleLogout = async () => {
     await logout();
@@ -62,11 +102,26 @@ export const Nav = ({ children }) => {
               onClick={() => setShowDropdown(!showDropdown)}
               onMouseEnter={() => setShowDropdown(true)}
             >
-              <img
-                src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.username || 'User'}&background=6366f1&color=fff`}
-                alt="Profile"
-                className="w-8 h-8 rounded-full border-2 border-indigo-200 dark:border-indigo-400"
-              />
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border-2 border-indigo-200 dark:border-indigo-400 object-cover"
+                  onError={(e) => {
+                    console.log('Navbar - Image failed to load:', userAvatar);
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className={`w-8 h-8 rounded-full border-2 border-indigo-200 dark:border-indigo-400 bg-indigo-600 dark:bg-indigo-500 flex items-center justify-center ${userAvatar ? 'hidden' : 'flex'}`}
+              >
+                <FontAwesomeIcon 
+                  icon={faUserTie} 
+                  className="text-white text-sm"
+                />
+              </div>
             </div>
             
             {showDropdown && (
