@@ -93,20 +93,25 @@ export const handleGenerate = async ({
   ) {
     // Set loading state
     if (setIsLoading) setIsLoading(true);
-    
+
     // Add loading message to chat
     if (setChatMessages) {
-      setChatMessages(prev => [...prev, {
-        text: "🔄 Generating your quiz... This may take a few moments.",
-        content: (
-          <div className="flex items-center gap-2 mt-2">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-            <span className="text-sm text-gray-600">Processing your files and creating questions...</span>
-          </div>
-        )
-      }]);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          text: "🔄 Generating your quiz... This may take a few moments.",
+          content: (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+              <span className="text-sm text-gray-600">
+                Processing your files and creating questions...
+              </span>
+            </div>
+          ),
+        },
+      ]);
     }
-    
+
     for (const pdf of uploadedFiles.pdf) {
       if (pdf.selectedPages.length === 0) {
         console.error(`No pages selected for PDF: ${pdf.name}`);
@@ -117,13 +122,27 @@ export const handleGenerate = async ({
     await callGeneratePdf(uploadedFiles.pdf);
     DatatoSend.image = uploadedFiles.image;
     DatatoSend.video = uploadedFiles.video;
-    fecthResponse(DatatoSend, setQuizData, setAnskey, setQuizId, setIsLoading, setChatMessages);
+    fecthResponse(
+      DatatoSend,
+      setQuizData,
+      setAnskey,
+      setQuizId,
+      setIsLoading,
+      setChatMessages
+    );
   } else {
     console.error("No files uploaded!");
   }
 };
 
-const fecthResponse = async (DatatoSend, setQuizData, setAnskey, setQuizId, setIsLoading, setChatMessages) => {
+const fecthResponse = async (
+  DatatoSend,
+  setQuizData,
+  setAnskey,
+  setQuizId,
+  setIsLoading,
+  setChatMessages
+) => {
   const formData = new FormData();
   // The server's multer middleware expects an array of files under the 'files' field name.
   DatatoSend.pdf.forEach((file) => formData.append("files", file));
@@ -206,49 +225,56 @@ const fecthResponse = async (DatatoSend, setQuizData, setAnskey, setQuizId, setI
       explanation: q.explanation,
     }));
     setAnskey(answerKey);
-    
+
     // Clear loading state
     if (setIsLoading) setIsLoading(false);
-    
+
     // Clear chat history and show success message
     if (setChatMessages) {
-      setChatMessages([{
-        text: "✅ Quiz generated successfully!",
-        content: (
-          <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h3 className="font-semibold text-green-800 mb-2">{quiz.title}</h3>
-            <p className="text-sm text-green-700 mb-2">{quiz.description}</p>
-            <div className="flex gap-2 text-xs text-green-600">
-              <span>📝 {quiz.questions?.length || 0} questions</span>
-              <span>⏱️ {quiz.timeLimit || 'No time limit'}</span>
-              <span>🎯 {quiz.difficulty || 'Mixed difficulty'}</span>
+      setChatMessages([
+        {
+          text: "✅ Quiz generated successfully!",
+          content: (
+            <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">
+                {quiz.title}
+              </h3>
+              <p className="text-sm text-green-700 mb-2">{quiz.description}</p>
+              <div className="flex gap-2 text-xs text-green-600">
+                <span>📝 {quiz.questions?.length || 0} questions</span>
+                <span>⏱️ {quiz.timeLimit || "No time limit"}</span>
+                <span>🎯 {quiz.difficulty || "Mixed difficulty"}</span>
+              </div>
             </div>
-          </div>
-        )
-      }]);
+          ),
+        },
+      ]);
     }
   } catch (err) {
     console.error("Fetch error:", err);
-    
+
     // Clear loading state
     if (setIsLoading) setIsLoading(false);
-    
+
     // Show error message in chat
     if (setChatMessages) {
-      setChatMessages(prev => [...prev, {
-        text: "❌ Failed to generate quiz",
-        content: (
-          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{err.message}</p>
-            <button 
-              className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
-              onClick={() => window.location.reload()}
-            >
-              Try Again
-            </button>
-          </div>
-        )
-      }]);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          text: "❌ Failed to generate quiz",
+          content: (
+            <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{err.message}</p>
+              <button
+                className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded text-xs hover:bg-red-200"
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </button>
+            </div>
+          ),
+        },
+      ]);
     } else {
       alert(`Error generating quiz: ${err.message}`);
     }
