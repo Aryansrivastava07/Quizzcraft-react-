@@ -1,7 +1,8 @@
 import { PDFDocument } from "pdf-lib";
 
 // Get API base URL from environment or fallback to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/v1";
 
 const DatatoSend = {
   pdf: [],
