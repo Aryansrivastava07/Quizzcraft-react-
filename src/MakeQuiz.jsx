@@ -331,43 +331,44 @@ export const MakeQuiz = () => {
   if (quizData && !isLoading) {
     if (showQuizViewer) {
       return (
-        <div className="min-h-[90vh] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-8">
+        <div className="min-h-[90vh] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-4 sm:p-6 lg:p-8">
           <div className="max-w-6xl mx-auto">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-4">
+                <div className="flex items-center gap-3 sm:gap-4">
                   <button
                     onClick={() => setShowQuizViewer(false)}
                     className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
                   >
-                    <FontAwesomeIcon icon={faArrowLeft} className="text-xl" />
+                    <FontAwesomeIcon icon={faArrowLeft} className="text-lg sm:text-xl" />
                   </button>
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-800 dark:text-white">{quizData.title}</h2>
-                    <p className="text-gray-600 dark:text-gray-300">{quizData.description}</p>
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">{quizData.title}</h2>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{quizData.description}</p>
                   </div>
                 </div>
                 <button
                   onClick={handleAddQuestion}
-                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg transform transition hover:scale-105 flex items-center gap-2"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 sm:px-4 text-sm sm:text-base rounded-lg transition-colors flex items-center gap-2 w-full sm:w-auto justify-center"
                 >
                   <FontAwesomeIcon icon={faPlus} />
-                  Add Question
+                  <span className="hidden sm:inline">Add Question</span>
+                  <span className="sm:hidden">Add</span>
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {quizData.questions.map((question, questionIndex) => (
-                  <div key={questionIndex} className="border border-gray-200 dark:border-gray-600 rounded-xl p-6 bg-gray-50 dark:bg-gray-700">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                        Question {questionIndex + 1}
+                  <div key={questionIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">
+                        Q{questionIndex + 1}
                       </h3>
                       <button
                         onClick={() => handleDeleteQuestion(questionIndex)}
-                        className="text-red-500 hover:text-red-700 transition-colors"
+                        className="text-red-500 hover:text-red-700 transition-colors p-2 sm:p-1"
                       >
-                        <FontAwesomeIcon icon={faTrash} />
+                        <FontAwesomeIcon icon={faTrash} className="text-base sm:text-lg" />
                       </button>
                     </div>
 
@@ -379,9 +380,9 @@ export const MakeQuiz = () => {
                         <textarea
                           value={question.question}
                           onChange={(e) => handleQuestionUpdate(questionIndex, 'question', e.target.value)}
-                          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
-                          rows={3}
+                          className="w-full p-3 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
                           placeholder="Enter your question here..."
+                          rows={3}
                         />
                       </div>
 
@@ -389,21 +390,21 @@ export const MakeQuiz = () => {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Options
                         </label>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {question.options.map((option, optionIndex) => (
-                            <div key={optionIndex} className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-gray-600 dark:text-gray-400 w-6">
-                                {String.fromCharCode(65 + optionIndex)}.
-                              </span>
-                              <input
-                                type="text"
-                                value={option}
-                                onChange={(e) => handleOptionUpdate(questionIndex, optionIndex, e.target.value)}
-                                className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                                placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
-                              />
-                            </div>
-                          ))}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                        {question.options.map((option, optionIndex) => (
+                          <div key={optionIndex}>
+                            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 sm:mb-2">
+                              {String.fromCharCode(65 + optionIndex)}
+                            </label>
+                            <input
+                              type="text"
+                              value={option}
+                              onChange={(e) => handleOptionUpdate(questionIndex, optionIndex, e.target.value)}
+                              className="w-full p-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                              placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                            />
+                          </div>
+                        ))}
                         </div>
                       </div>
 
@@ -444,10 +445,10 @@ export const MakeQuiz = () => {
                 ))}
               </div>
 
-              <div className="mt-8 flex justify-center gap-4">
+              <div className="mt-6 sm:mt-8 flex justify-center">
                 <button
                   onClick={() => setShowQuizViewer(false)}
-                  className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transform transition hover:scale-105"
+                  className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 text-sm sm:text-base rounded-xl shadow-lg transform transition hover:scale-105 w-full sm:w-auto"
                 >
                   Back to Actions
                 </button>
@@ -473,7 +474,7 @@ export const MakeQuiz = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
               <button
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-6 rounded-xl shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-2"
                 onClick={() => setShowQuizViewer(true)}
@@ -524,66 +525,66 @@ export const MakeQuiz = () => {
   }
 
   return (
-    <div className="min-h-[90vh] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-8">
+    <div className="min-h-[90vh] bg-gray-50 dark:bg-gray-900 transition-colors duration-300 p-4 sm:p-6 lg:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4">Create Your Quiz</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-2 sm:mb-4">Create Your Quiz</h1>
+          <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300">
             Choose your content sources and generate an intelligent quiz
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">Select Content Sources</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">Select Content Sources</h2>
           
           {/* Input Type Selector */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <button
               onClick={() => toggleInput('prompt')}
-              className={`p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-3 ${
+              className={`p-3 sm:p-4 lg:p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 sm:gap-3 ${
                 activeInputs.prompt 
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
               }`}
             >
-              <FontAwesomeIcon icon={faFileText} className="text-3xl" />
-              <span className="font-medium">Text Prompt</span>
+              <FontAwesomeIcon icon={faFileText} className="text-xl sm:text-2xl lg:text-3xl" />
+              <span className="font-medium text-xs sm:text-sm lg:text-base">Text Prompt</span>
             </button>
             
             <button
               onClick={() => toggleInput('image')}
-              className={`p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-3 ${
+              className={`p-3 sm:p-4 lg:p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 sm:gap-3 ${
                 activeInputs.image 
                   ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
               }`}
             >
-              <FontAwesomeIcon icon={faImage} className="text-3xl" />
-              <span className="font-medium">Images</span>
+              <FontAwesomeIcon icon={faImage} className="text-xl sm:text-2xl lg:text-3xl" />
+              <span className="font-medium text-xs sm:text-sm lg:text-base">Images</span>
             </button>
             
             <button
               onClick={() => toggleInput('video')}
-              className={`p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-3 ${
+              className={`p-3 sm:p-4 lg:p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 sm:gap-3 ${
                 activeInputs.video 
                   ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
               }`}
             >
-              <FontAwesomeIcon icon={faVideo} className="text-3xl" />
-              <span className="font-medium">Videos</span>
+              <FontAwesomeIcon icon={faVideo} className="text-xl sm:text-2xl lg:text-3xl" />
+              <span className="font-medium text-xs sm:text-sm lg:text-base">Videos</span>
             </button>
             
             <button
               onClick={() => toggleInput('pdf')}
-              className={`p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-3 ${
+              className={`p-3 sm:p-4 lg:p-6 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 sm:gap-3 ${
                 activeInputs.pdf 
                   ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' 
                   : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
               }`}
             >
-              <FontAwesomeIcon icon={faFilePdf} className="text-3xl" />
-              <span className="font-medium">PDF Files</span>
+              <FontAwesomeIcon icon={faFilePdf} className="text-xl sm:text-2xl lg:text-3xl" />
+              <span className="font-medium text-xs sm:text-sm lg:text-base">PDF Files</span>
             </button>
           </div>
 
@@ -658,7 +659,7 @@ export const MakeQuiz = () => {
               <button
                 onClick={handleSubmit}
                 disabled={!promptText && selectedFiles.images.length === 0 && selectedFiles.videos.length === 0 && selectedFiles.pdfs.length === 0}
-                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-8 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl disabled:hover:scale-100 text-lg"
+                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl disabled:hover:scale-100 text-base sm:text-lg w-full"
               >
                 Generate Quiz
               </button>

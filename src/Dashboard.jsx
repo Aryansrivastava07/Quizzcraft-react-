@@ -14,6 +14,8 @@ import {
   faCircleCheck,
   faStar,
   faPencil,
+  faBars,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { faIdBadge } from "@fortawesome/free-regular-svg-icons";
 import { Profile } from './Components/Profile.jsx'
@@ -25,6 +27,7 @@ import { Settings } from './Components/Settings.jsx';
 export const Dashboard = () => {
   const [Isactive, setisactive] = useState("Profile");
   const [setting, setSettings] = useState(settings);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { darkMode } = useTheme();
   const { user } = useAuth();
   
@@ -231,41 +234,79 @@ export const Dashboard = () => {
   };
 
   return (
-    <div className="h-[90vh] w-screen grid grid-cols-[1fr_4fr] px-2 overflow-y-hidden bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="h-full w-full bg-white dark:bg-gray-800 border-r-2 border-gray-200 dark:border-gray-700 transition-colors duration-300">
-        <LeftPanel isactive={Isactive} setisactive={setisactive} />
+    <div className="h-[calc(100vh-80px)] w-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex flex-col overflow-hidden">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center flex-shrink-0">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+        >
+          <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
+        </button>
       </div>
-      <div className="h-full w-full bg-gray-50 dark:bg-gray-900 overflow-y-auto scrollbar transition-colors duration-300">
-        {Isactive === "Profile" && (
-          <Profile 
-            userData={userData}
-            dashboardStats={dashboardStats}
-            loading={loading}
-            error={error}
-            refreshUserData={refreshUserData}
+
+      <div className="flex flex-1 lg:grid lg:grid-cols-[300px_1fr] overflow-hidden">
+        {/* Mobile Sidebar Overlay */}
+        {isMobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsMobileMenuOpen(false)}
           />
         )}
-        {Isactive === "Quiz Created" && (
-          <QuizCreated 
-            quizzesCreated={quizzesData}
-            loading={loading}
-            error={error}
+        
+        {/* Sidebar */}
+        <div className={`
+          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:translate-x-0 fixed lg:relative top-0 left-0 z-50 lg:z-auto
+          w-80 lg:w-full h-full lg:h-full
+          bg-white dark:bg-gray-800 
+          border-r-2 border-gray-200 dark:border-gray-700 
+          transition-all duration-300 ease-in-out
+          lg:transition-colors lg:duration-300
+          overflow-y-auto lg:overflow-hidden
+          flex-shrink-0
+        `}>
+          <LeftPanel 
+            isactive={Isactive} 
+            setisactive={setisactive} 
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
           />
-        )}
-        {Isactive === "Quiz Attempted" && (
-          <QuizAttempted 
-            quizAttempted={attemptsData}
-            loading={loading}
-            error={error}
-          />
-        )}
-        {Isactive === "Notification" && <Notifications notifications = {notifications}/>}
-        {Isactive === "Settings" && <Settings settings = {setting} onChange={handleSettingChange}/>}
+        </div>
+        
+        {/* Main Content */}
+        <div className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-y-auto transition-colors duration-300 min-h-0">
+          {Isactive === "Profile" && (
+            <Profile 
+              userData={userData}
+              dashboardStats={dashboardStats}
+              loading={loading}
+              error={error}
+              refreshUserData={refreshUserData}
+            />
+          )}
+          {Isactive === "Quiz Created" && (
+            <QuizCreated 
+              quizzesCreated={quizzesData}
+              loading={loading}
+              error={error}
+            />
+          )}
+          {Isactive === "Quiz Attempted" && (
+            <QuizAttempted 
+              quizAttempted={attemptsData}
+              loading={loading}
+              error={error}
+            />
+          )}
+          {Isactive === "Notification" && <Notifications notifications = {notifications}/>}
+          {Isactive === "Settings" && <Settings settings = {setting} onChange={handleSettingChange}/>}
+        </div>
       </div>
     </div>
   );
 };
-const LeftPanel = ({ isactive, setisactive }) => {
+const LeftPanel = ({ isactive, setisactive, setIsMobileMenuOpen }) => {
   return (
     <>
       <div className="px-5 py-2">
@@ -302,9 +343,13 @@ const LeftPanel = ({ isactive, setisactive }) => {
                         isactive === name[0]
                           ? "bg-indigo-600 dark:bg-indigo-500 text-white font-bold shadow-lg"
                           : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white"
-                      } px-4 py-2 rounded-2xl flex gap-3 items-center cursor-pointer transition-all duration-300`}
+                      } px-4 py-2 rounded-2xl flex gap-3 items-center cursor-pointer transition-all duration-300 min-h-[48px]`}
                       onClick={() => {
                         setisactive(name[0]);
+                        // Close mobile menu when item is selected
+                        if (setIsMobileMenuOpen) {
+                          setIsMobileMenuOpen(false);
+                        }
                       }}
                       key={idx}
                     >

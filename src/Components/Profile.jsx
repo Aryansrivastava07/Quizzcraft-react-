@@ -149,79 +149,101 @@ export const Profile = ({ userData: propUserData, dashboardStats, loading: propL
 
   return (
     <>
-      <div className="h-auto w-full flex flex-col content-center pt-20 px-5">
-        <div className="flex flex-row justify-end items-center text-gray-600 dark:text-gray-300 py-2">
+      <div className="h-auto w-full flex flex-col content-center pt-4 lg:pt-10 px-2 sm:px-5">
+        {/* Mobile joined date - shown only on mobile */}
+        <div className="flex lg:hidden flex-row justify-center sm:justify-end items-center text-gray-600 dark:text-gray-300 py-2 mb-4">
           <FontAwesomeIcon icon={faCalendarDays} />
           <p className="px-3">Joined {userData.joined}</p>
         </div>
-        <div className="relative h-full grid px-2">
-          <hr className="w-full border-1 border-gray-300 dark:border-gray-600 rounded-full mx-auto" />
-          <div className="absolute p-2 w-fit bg-white dark:bg-gray-800 justify-self-center top-0 -translate-y-25 rounded-full group">
-            <div className="hoverelement absolute h-50 w-50 rounded-full place-items-center bg-[#0909097d] backdrop-opacity-5 hidden group-hover:grid z-10">
-              <form action="" method="post" className="h-full w-full rounded-full grid place-items-center">
-                <input
-                  type="file"
-                  name="profile"
-                  id="profile"
-                  accept="[images/*]"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
-                <label htmlFor="profile" className="w-full h-full cursor-pointer grid place-items-center">
-                  <FontAwesomeIcon
-                    icon={faPencil}
-                    className="text-white text-5xl cursor-pointer"
+        
+        {/* Profile Picture Section */}
+        <div className="flex flex-col items-center justify-center mb-4 relative">
+          {/* Full width horizontal lines - desktop only */}
+          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gray-300 dark:bg-gray-600 transform -translate-y-15 z-0"></div>
+          
+          {/* Profile Picture with horizontal line */}
+          <div className="relative flex-shrink-0">
+            
+            <div className="p-2 w-fit bg-white dark:bg-gray-800 rounded-full group shadow-lg relative z-10">
+              <div className="hoverelement absolute inset-0 rounded-full place-items-center bg-[#0909097d] backdrop-opacity-5 hidden group-hover:grid z-20">
+                <form action="" method="post" className="h-full w-full rounded-full grid place-items-center">
+                  <input
+                    type="file"
+                    name="profile"
+                    id="profile"
+                    accept="[images/*]"
+                    className="hidden"
+                    onChange={handleImageUpload}
                   />
-                </label>
-              </form>
-            </div>
-            <div className="h-50 w-50 rounded-full grid place-items-center bg-gray-800 z-0 overflow-hidden">
-              {profileImg && (
-                <img
-                  src={profileImg}
-                  alt=""
-                  className="rounded-full w-full h-full object-cover"
-                />
-              )}
-              {!profileImg && (
-                <FontAwesomeIcon
-                  icon={faUserTie}
-                  className=" text-9xl text-white"
-                />
-              )}
+                  <label htmlFor="profile" className="w-full h-full cursor-pointer grid place-items-center">
+                    <FontAwesomeIcon
+                      icon={faPencil}
+                      className="text-white text-3xl sm:text-4xl lg:text-5xl cursor-pointer"
+                    />
+                  </label>
+                </form>
+              </div>
+              <div className="w-20 h-20 sm:w-28 sm:h-28 lg:w-36 lg:h-36 xl:w-40 xl:h-40 rounded-full grid place-items-center bg-gray-800 z-10 overflow-hidden">
+                {profileImg && (
+                  <img
+                    src={profileImg}
+                    alt="Profile"
+                    className="rounded-full w-full h-full object-cover"
+                  />
+                )}
+                {!profileImg && (
+                  <FontAwesomeIcon
+                    icon={faUserTie}
+                    className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl text-white"
+                  />
+                )}
+              </div>
             </div>
           </div>
-          <div className="mt-25 w-full flex flex-col justify-center items-center mb-5">
-            <h2 className="font-semibold text-3xl pt-2 text-center text-gray-800 dark:text-white w-60">
+          
+          {/* User Info - Centered below profile picture */}
+          <div className="text-center">
+            <h2 className="font-semibold text-lg sm:text-xl lg:text-2xl xl:text-3xl text-gray-800 dark:text-white mb-1 lg:mb-2">
               {userData.name}
             </h2>
-            <h3 className="text-gray-600 dark:text-gray-300 text-sm text-center w-60">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm lg:text-base xl:text-lg mb-2 lg:mb-3">
               {userData.email}
             </h3>
+            
+            {/* Desktop joined date - centered below email */}
+            <div className="hidden lg:flex flex-row items-center justify-center text-gray-600 dark:text-gray-300 text-sm xl:text-base">
+              <FontAwesomeIcon icon={faCalendarDays} className="mr-2" />
+              <p>Joined {userData.joined}</p>
+            </div>
           </div>
         </div>
-        <div className="px-10 flex flex-row justify-around mb-2 border-b-2 pb-5 border-gray-200 dark:border-gray-600">
-          <button className="p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+        
+        {/* Divider */}
+        <div className="w-full mb-6 lg:mb-8">
+          <hr className="border-gray-300 dark:border-gray-600" />
+        </div>
+        <div className="px-2 sm:px-10 flex flex-col sm:flex-row justify-around gap-4 sm:gap-0 mb-2 border-b-2 pb-5 border-gray-200 dark:border-gray-600">
+          <button className="p-3 sm:p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-sm sm:text-xl rounded-2xl flex flex-row gap-x-2 sm:gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors min-h-[48px] justify-center">
             <FontAwesomeIcon icon={faPenFancy} />
             <p>Quizzes Created</p>
             <p>{userData.quizCreated}</p>
           </button>
-          <button className="p-4 bg-green-600 dark:bg-green-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-green-700 dark:hover:bg-green-600 transition-colors">
+          <button className="p-3 sm:p-4 bg-green-600 dark:bg-green-500 text-white font-semibold text-sm sm:text-xl rounded-2xl flex flex-row gap-x-2 sm:gap-x-5 items-center hover:bg-green-700 dark:hover:bg-green-600 transition-colors min-h-[48px] justify-center">
             <FontAwesomeIcon icon={faStar} />
             <p>Average Score</p>
             <p>{userData.averageScore}%</p>
           </button>
-          <button className="p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-xl rounded-2xl flex flex-row gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors">
+          <button className="p-3 sm:p-4 bg-indigo-600 dark:bg-indigo-500 text-white font-semibold text-sm sm:text-xl rounded-2xl flex flex-row gap-x-2 sm:gap-x-5 items-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors min-h-[48px] justify-center">
             <FontAwesomeIcon icon={faCircleCheck} />
             <p>Quizzes Submited</p>
             <p>{userData.quiSubmited}</p>
           </button>
         </div>
-        <div className="p-2">
-          <h2 className="text-gray-500 dark:text-gray-400">Account Details</h2>
+        <div className="p-2 sm:p-4">
+          <h2 className="text-gray-500 dark:text-gray-400 mb-4 text-lg font-medium">Account Details</h2>
           <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-2 place-items-center gap-5 p-2"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
           >
             {[
               {
@@ -283,59 +305,58 @@ export const Profile = ({ userData: propUserData, dashboardStats, loading: propL
             ].map((field, idx) => (
               <div
                 key={field.id}
-                className={`w-full h-fit px-5 rounded-2xl grid grid-cols-[1fr_5fr] items-center${
-                  field.colSpan === 2 ? " col-span-2 grid-cols-[1fr_10fr]" : ""
-                }
-                ${
+                className={`w-full h-fit rounded-xl border transition-all duration-300 ${
+                  field.colSpan === 2 ? "lg:col-span-2" : ""
+                } ${
                   editable
-                    ? "bg-gray-100 dark:bg-gray-700 border-1 border-gray-300 dark:border-gray-600"
-                    : "bg-gray-200 dark:bg-gray-600"
-                } transition-colors duration-300`}
+                    ? "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 shadow-sm hover:shadow-md"
+                    : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                }`}
               >
-                <label
-                  htmlFor={field.id}
-                  className="font-semibold justify-self-center text-gray-700 dark:text-gray-200"
-                >
-                  {field.label}
-                </label>
-                <input
-                  className="p-5 w-full outline-none bg-transparent text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  type={field.type}
-                  id={field.id}
-                  name={field.name}
-                  value={field.value}
-                  disabled={!editable}
-                  onChange={(e) => {
-                    setUserData((prev) => ({
-                      ...prev,
-                      [field.id]: e.target.value,
-                    }));
-                  }}
-                />
+                <div className="p-4">
+                  <label
+                    htmlFor={field.id}
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                  >
+                    {field.label}
+                  </label>
+                  <input
+                    className="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent text-gray-800 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all duration-200 min-h-[48px]"
+                    type={field.type}
+                    id={field.id}
+                    name={field.name}
+                    value={field.value}
+                    disabled={!editable}
+                    onChange={(e) => {
+                      setUserData((prev) => ({
+                        ...prev,
+                        [field.id]: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
               </div>
             ))}
-            <div
-              className={`w-full col-start-2 justify-end px-5 ${
-                editable ? "flex" : "hidden"
-              }`}
-            >
+            <div className="lg:col-span-2 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end mt-4">
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-500 dark:bg-green-600 border-2 border-gray-300 dark:border-gray-600 text-white font-semibold cursor-pointer rounded-xl flex flex-row gap-x-5 items-center hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
+                className={`px-6 py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-xl hover:bg-green-600 dark:hover:bg-green-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg min-h-[48px] flex items-center justify-center gap-2 ${
+                  editable ? "flex" : "hidden"
+                }`}
               >
-                Submit
+                <FontAwesomeIcon icon={faCircleCheck} />
+                Submit Changes
               </button>
-            </div>
-            <div className="w-full col-start-2 flex justify-end px-5">
               <button
-                className={`px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 cursor-pointer rounded-xl flex-row gap-x-5 items-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                className={`px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg min-h-[48px] flex items-center justify-center gap-2 ${
                   !editable ? "flex" : "hidden"
-                } `}
+                }`}
                 type="button"
                 onClick={() => {
                   seteditable(true);
                 }}
               >
+                <FontAwesomeIcon icon={faPencil} />
                 Edit Details
               </button>
             </div>

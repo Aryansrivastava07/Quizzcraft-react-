@@ -66,19 +66,32 @@ export const DoughnutChart = ({ result, length }) => {
   }), [result, length]);
 
   const options = useMemo(() => ({
+    responsive: true,
+    maintainAspectRatio: true,
+    aspectRatio: 1,
     plugins: {
       legend: {
         position: "bottom",
         labels: {
           color: textColor,
           font: {
-            size: 14,
+            size: 12,
             weight: "bold",
           },
+          padding: 10,
+          usePointStyle: true,
+          pointStyle: 'circle',
         },
       },
     },
     rotation: 180,
+    cutout: '50%',
+    elements: {
+      arc: {
+        borderWidth: 2,
+        hoverBorderWidth: 3,
+      },
+    },
   }), [textColor]);
 
   const percentage = useMemo(() => `${Math.round((result / length) * 100)}%`, [result, length]);
@@ -89,12 +102,17 @@ export const DoughnutChart = ({ result, length }) => {
       if (!percentage) return;
       const {
         ctx,
-        chartArea: { top, bottom, left, right },
+        chartArea: { top, bottom, left, right, width, height },
       } = chart;
       const centerX = (left + right) / 2;
       const centerY = (top + bottom) / 2;
+      
+      // Calculate responsive font size based on chart size
+      const minDimension = Math.min(width, height);
+      const fontSize = Math.max(16, Math.min(32, minDimension * 0.15));
+      
       ctx.save();
-      ctx.font = "bold 30px sans-serif";
+      ctx.font = `bold ${fontSize}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = textColor;

@@ -108,16 +108,16 @@ export const Result = () => {
 
   return (
     <div className="bg-white dark:bg-gray-950">
-      <div className="bg-slate-300 dark:bg-gray-950 text-gray-800 dark:text-white py-8 px-6">
+      <div className="bg-slate-300 dark:bg-gray-950 text-gray-800 dark:text-white py-4 sm:py-8 px-3 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold mb-2 text-[#041b43] dark:text-white">🎉 Quiz Performance</h1>
-              <p className="text-xl text-gray-600 dark:text-gray-300">Your results are in!</p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
+            <div className="w-full sm:w-auto">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 text-[#041b43] dark:text-white">🎉 Quiz Performance</h1>
+              <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">Your results are in!</p>
             </div>
-            <div className="text-right">
-              <h2 className="text-2xl font-semibold text-[#041b43] dark:text-white">{quizData?.quiz?.title || 'Quiz Complete'}</h2>
-              <div className="flex gap-6 mt-2 text-sm text-gray-600 dark:text-gray-300">
+            <div className="w-full sm:w-auto text-left sm:text-right">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#041b43] dark:text-white">{quizData?.quiz?.title || 'Quiz Complete'}</h2>
+              <div className="flex flex-wrap gap-3 sm:gap-6 mt-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
                 <span>📊 {totalQuestions} Questions</span>
                 <span>⏱️ {Math.floor(timeTaken / 60)}m {timeTaken % 60}s</span>
                 <span>🎯 {((score / totalQuestions) * 100).toFixed(1)}% Score</span>
@@ -127,61 +127,63 @@ export const Result = () => {
         </div>
       </div>
 
-      <div className="grid h-[90vh] w-full m-auto grid-cols-[1fr_2.5fr] justify-center items-center px-25 bg-gradient-to-t from-slate-100 to-slate-300 dark:from-gray-800 dark:to-gray-950 shadow-2xs">
-        <div className="h-full w-full rounded-2xl grid grid-rows-[1fr_2.5fr] gap-5 p-5 ">
-          <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-5 grid grdo-rows-2 items-center justify-center bg-white dark:bg-[#0f1726]">
-            <h2 className="font-bold text-center text-2xl text-[#041b43] dark:text-white">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2.5fr] gap-4 lg:gap-0 min-h-[90vh] w-full m-auto justify-center items-start lg:items-center px-3 sm:px-6 lg:px-25 bg-gradient-to-t from-slate-100 to-slate-300 dark:from-gray-800 dark:to-gray-950 shadow-2xs py-4 lg:py-0">
+        <div className="h-auto lg:h-full w-full rounded-2xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-[1fr_2.5fr] gap-4 lg:gap-5 p-3 sm:p-5">
+          <div className="h-48 sm:h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-3 sm:p-5 grid grid-rows-2 items-center justify-center bg-white dark:bg-[#0f1726]">
+            <h2 className="font-bold text-center text-lg sm:text-xl lg:text-2xl text-[#041b43] dark:text-white">
               Score
             </h2>
-            <p className="font-bold text-center text-5xl text-[#041b43] dark:text-white place-self-start">
+            <p className="font-bold text-center text-3xl sm:text-4xl lg:text-5xl text-[#041b43] dark:text-white place-self-start">
               {score} / {totalQuestions}
             </p>
           </div>
-          <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-5  grid grdo-rows-2 items-center justify-center bg-white dark:bg-[#0f1726]">
-            <h2 className="font-bold text-2xl text-center text-[#041b43] dark:text-white">
+          <div className="h-64 sm:h-80 lg:h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-3 sm:p-5 flex flex-col bg-white dark:bg-[#0f1726]">
+            <h2 className="font-bold text-lg sm:text-xl lg:text-2xl text-center text-[#041b43] dark:text-white mb-2 sm:mb-4">
               Correct Answers
             </h2>
-            <div className="max-h-full box-border">
-              <DoughnutChart
-                answered={totalQuestions}
-                result={score}
-                length={totalQuestions}
-              />
+            <div className="flex-1 flex items-center justify-center min-h-0 w-full">
+              <div className="w-full h-full max-w-[200px] sm:max-w-[250px] lg:max-w-[300px] max-h-[200px] sm:max-h-[250px] lg:max-h-[300px]">
+                <DoughnutChart
+                  answered={totalQuestions}
+                  result={score}
+                  length={totalQuestions}
+                />
+              </div>
             </div>
           </div>
         </div>
-        <div className="h-full w-full rounded-2xl grid grid-rows-[1.5fr_2fr] gap-5 p-5 ">
-          <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-5 bg-white dark:bg-[#0f1726]">
-            <h2 className="font-bold text-2xl text-[#041b43] dark:text-white">
+        <div className="h-auto lg:h-full w-full rounded-2xl grid grid-cols-1 lg:grid-rows-[1.5fr_2fr] gap-4 lg:gap-5 p-3 sm:p-5">
+          <div className="h-64 sm:h-80 lg:h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-3 sm:p-5 bg-white dark:bg-[#0f1726]">
+            <h2 className="font-bold text-lg sm:text-xl lg:text-2xl text-[#041b43] dark:text-white">
               Time Spent in each Question
             </h2>
-            <div className="max-h-full w-full pt-10 box-border relative ">
+            <div className="max-h-full w-full pt-4 sm:pt-10 box-border relative">
               <LineChart quesTimer={timeSpent || Array(totalQuestions).fill(0)} />
             </div>
           </div>
-          <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-5 bg-white dark:bg-[#0f1726]">
-            <h2 className="font-bold text-2xl text-[#041b43] dark:text-white">Leaderboard</h2>
-            <div className="mt-4 max-h-64 overflow-y-auto">
+          <div className="h-64 sm:h-80 lg:h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-3 sm:p-5 bg-white dark:bg-[#0f1726]">
+            <h2 className="font-bold text-lg sm:text-xl lg:text-2xl text-[#041b43] dark:text-white">Leaderboard</h2>
+            <div className="mt-4 max-h-48 sm:max-h-64 overflow-y-auto">
               {leaderboard.length > 0 ? (
                 leaderboard.map((entry, index) => (
                   <div key={index} className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
-                    <span className="font-medium text-gray-800 dark:text-gray-200">{entry.userId?.username || 'Anonymous'}</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">{entry.score}/{totalQuestions}</span>
+                    <span className="font-medium text-sm sm:text-base text-gray-800 dark:text-gray-200">{entry.userId?.username || 'Anonymous'}</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{entry.score}/{totalQuestions}</span>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 dark:text-gray-400">No leaderboard data available</p>
+                <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">No leaderboard data available</p>
               )}
             </div>
           </div>
         </div>
       </div>
-      <div className=" py-6 px-8 mx-5 mt-10 mb-5 rounded-2xl ">
-        <h1 className="font-bold text-5xl text-center text-[#041b43] dark:text-white">
+      <div className="py-4 sm:py-6 px-3 sm:px-8 mx-2 sm:mx-5 mt-6 sm:mt-10 mb-3 sm:mb-5 rounded-2xl">
+        <h1 className="font-bold text-2xl sm:text-3xl lg:text-5xl text-center text-[#041b43] dark:text-white">
           Review your Answers
         </h1>
       </div>
-      <div className=" w-full m-auto justify-center items-center px-25 bg-gradient-to-b from-slate-100 to-slate-300 dark:from-gray-950 dark:to-gray-950 shadow-2xl">
+      <div className="w-full m-auto justify-center items-center px-3 sm:px-6 lg:px-25 bg-gradient-to-b from-slate-100 to-slate-300 dark:from-gray-950 dark:to-gray-950 shadow-2xl">
         <Review quizData={quizData} responses={responses} timeSpent={timeSpent} />
       </div>
     </div>
@@ -225,19 +227,19 @@ const Review = ({ quizData, responses, timeSpent }) => {
             className="w-6 h-6"
             alt=""
           />
-          <h2 className="text-xl text-center font-bold text-gray-800 dark:text-gray-200 pr-10">
+          <h2 className="text-base sm:text-lg lg:text-xl text-center font-bold text-gray-800 dark:text-gray-200 pr-2 sm:pr-10">
             Question {index}
           </h2>
-          <div className="">
-            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200"> {question.question} </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Your answer: {userAnswer || "Not answered"}</p>
+          <div className="flex-1">
+            <h2 className="text-sm sm:text-lg lg:text-xl font-bold text-gray-800 dark:text-gray-200 leading-relaxed"> {question.question} </h2>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">Your answer: {userAnswer || "Not answered"}</p>
           </div>
         </span>
       </div>
     );
   }
   return (
-    <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-10 bg-white dark:bg-[#0f1726]">
+    <div className="h-full w-full rounded-2xl shadow-[var(--box_shadow)] dark:shadow-lg dark:shadow-[#0f1726]/50 p-3 sm:p-6 lg:p-10 bg-white dark:bg-[#0f1726]">
       {quiz.questions.map((question, idx) => {
         // responses is now an array of answer indices, not objects
         const userSelectedOption = responses[idx]; // This is the selected option index
