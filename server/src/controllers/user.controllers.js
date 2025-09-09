@@ -285,12 +285,28 @@ const getUser = asyncHandler(async (req, res, next) => {
 const updateProfile = asyncHandler(async (req, res, next) => {
     const userId = req.user._id;
     const { fullName, phone, address, dateOfBirth } = req.body;
+
+    // Check for uniqueness of username and mobile number
+    if (fullName) {
+        const existingUser = await User.findOne({ username: fullName });
+        if (existingUser && existingUser._id.toString() !== userId.toString()) {
+            throw new ApiError(400, "Username already exists.");
+        }
+    }
+    if (phone) {
+        const existingUser = await User.findOne({ mobileNo: phone });
+        if (existingUser && existingUser._id.toString() !== userId.toString()) {
+            throw new ApiError(400, "Mobile number already exists.");
+        }
+    }
     
     const updateData = {};
     if (fullName) updateData.username = fullName;
     if (phone) updateData.mobileNo = phone;
     if (address) updateData.address = address;
     if (dateOfBirth) updateData.dateOfBirth = dateOfBirth;
+
+    console.log("Update data:", updateData); // Log updateData
     
     const user = await User.findByIdAndUpdate(
         userId,

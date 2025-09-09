@@ -273,8 +273,8 @@ export const Profile = ({ userData: propUserData, dashboardStats, loading: propL
               {
                 label: "DOB",
                 type: "date",
-                id: "DOB",
-                name: "DOB",
+                id: "dob",
+                name: "dob",
                 value: userData.dob,
                 colSpan: 1,
               },

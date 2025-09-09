@@ -9,6 +9,8 @@ const errorHandler = (err, req, res, next) => {
         error = new ApiError(statusCode, message, error?.errors || [], err.stack);
     }
 
+    console.error("Error caught by error handler:", error.message); // Log the error message
+
     const response = {
         success: false,
         message: error.message,

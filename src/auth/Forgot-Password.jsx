@@ -113,7 +113,7 @@ const ResetPassword = () => {
               navigate("/auth/login");
             } else {
               alert("Recheck Password");
-              document.getElementById("set-password").value = "";
+              document.getElementById("password").value = "";
               document.getElementById("confirm-password").value = "";
             }
           }}
